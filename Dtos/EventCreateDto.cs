@@ -24,35 +24,9 @@ namespace ProyectoGalactico.Dtos
         [MinLength(1, ErrorMessage = "Debe haber al menos un participante")]
         public List<int> ParticipantsIds { get; set; } = new List<int>();
 
-
         public List<int> DeadIds { get; set; } = new List<int>();
 
         [StringLength(100)]
         public string? Winner { get; set; }
     }
-}
-
-public class UsuarioCrearDto
-{
-    [Required(ErrorMessage = "El nombre es obligatorio")]
-    [StringLength(80)]
-    public string Nombre { get; set; } = string.Empty;
-
-    [Required(ErrorMessage = "El email es obligatorio")]
-    [StringLength(80)]
-    public string Email { get; set; } = string.Empty;
-
-    [Required(ErrorMessage = "La contraseña es obligatoria")]
-    [StringLength(120)]
-    public string PasswordHash { get; set; } = string.Empty;
-
-    [StringLength(25)]
-    public string? Telefono { get; set; }
-
-    [StringLength(50)]
-    public string Rol { get; set; } = "Administrador";
-
-    [StringLength(50)]
-    public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
-}
 }
