@@ -16,13 +16,13 @@ namespace ProyectoGalactico.Endpoints
                 .WithGroupName("v1")
                 .WithSummary("Lista cartas con filtros opcionales")
                 .WithDescription("Filtra por personaje (characterId) y por peligrosidad mínima.")
-                .Produces<List<CardsCharacter>>();
+                .Produces<List<CardCharacter>>();
 
             group.MapGet("/{id:int}", (CardService service, int id) =>
                     service.GetById(id).ToHttp())
                 .WithGroupName("v1")
                 .WithSummary("Obtiene una carta por id")
-                .ProducesRead<CardsCharacter>();
+                .ProducesRead<CardCharacter>();
 
             group.MapPost("/", (CardService service, CardsCharacterInput input) =>
             {
@@ -33,13 +33,13 @@ namespace ProyectoGalactico.Endpoints
             })
                 .WithGroupName("v2")
                 .WithSummary("Crea una carta para un personaje existente")
-                .ProducesCreate<CardsCharacter>();
+                .ProducesCreate<CardCharacter>();
 
             group.MapPut("/{id:int}", (CardService service, int id, CardsCharacterInput input) =>
                     service.Update(id, input).ToHttp())
                 .WithGroupName("v2")
                 .WithSummary("Modifica una carta")
-                .ProducesAction<CardsCharacter>();
+                .ProducesAction<CardCharacter>();
         }
     }
 }

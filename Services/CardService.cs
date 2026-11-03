@@ -6,7 +6,7 @@ namespace ProyectoGalactico.Services
 {
     public class CardService
     {
-        public List<CardsCharacter> GetAll(int? characterId, int? minDangerousLevel)
+        public List<CardCharacter> GetAll(int? characterId, int? minDangerousLevel)
         {
             lock (DataForModels.Sync)
             {
@@ -17,19 +17,19 @@ namespace ProyectoGalactico.Services
             }
         }
 
-        public ServiceResult<CardsCharacter> GetById(int id)
+        public ServiceResult<CardCharacter> GetById(int id)
         {
             lock (DataForModels.Sync)
             {
                 var card = DataForModels.Cards.FirstOrDefault(c => c.Id == id);
                 return card is null
-                    ? ServiceResult<CardsCharacter>.NotFound($"No existe la carta {id}.")
-                    : ServiceResult<CardsCharacter>.Ok(card);
+                    ? ServiceResult<CardCharacter>.NotFound($"No existe la carta {id}.")
+                    : ServiceResult<CardCharacter>.Ok(card);
             }
         }
 
         // Si un personaje tiene varias cartas, cuenta la de mayor peligrosidad
-        public CardsCharacter? GetBestCard(int characterId)
+        public CardCharacter? GetBestCard(int characterId)
         {
             lock (DataForModels.Sync)
             {
@@ -40,12 +40,12 @@ namespace ProyectoGalactico.Services
             }
         }
 
-        public ServiceResult<CardsCharacter> Create(CardsCharacterInput input)
+        public ServiceResult<CardCharacter> Create(CardsCharacterInput input)
         {
             lock (DataForModels.Sync)
             {
                 var error = Validate(input);
-                if (error is not null) return ServiceResult<CardsCharacter>.Invalid(error);
+                if (error is not null) return ServiceResult<CardCharacter>.Invalid(error);
 
                 var id = DataForModels.Cards.Count == 0 ? 1 : DataForModels.Cards.Max(c => c.Id) + 1;
 
@@ -54,19 +54,19 @@ namespace ProyectoGalactico.Services
                     input.dangerousLevel, input.pictureUrl.Trim());
 
                 DataForModels.Cards.Add(created);
-                return ServiceResult<CardsCharacter>.Ok(created);
+                return ServiceResult<CardCharacter>.Ok((CardCharacter)created);
             }
         }
 
-        public ServiceResult<CardsCharacter> Update(int id, CardsCharacterInput input)
+        public ServiceResult<CardCharacter> Update(int id, CardsCharacterInput input)
         {
             lock (DataForModels.Sync)
             {
                 var index = DataForModels.Cards.FindIndex(c => c.Id == id);
-                if (index < 0) return ServiceResult<CardsCharacter>.NotFound($"No existe la carta {id}.");
+                if (index < 0) return ServiceResult<CardCharacter>.NotFound($"No existe la carta {id}.");
 
                 var error = Validate(input);
-                if (error is not null) return ServiceResult<CardsCharacter>.Invalid(error);
+                if (error is not null) return ServiceResult<CardCharacter>.Invalid(error);
 
                 var updated = DataForModels.Cards[index] with
                 {
@@ -79,7 +79,7 @@ namespace ProyectoGalactico.Services
                 };
 
                 DataForModels.Cards[index] = updated;
-                return ServiceResult<CardsCharacter>.Ok(updated);
+                return ServiceResult<CardCharacter>.Ok(updated);
             }
         }
 
