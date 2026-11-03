@@ -1,8 +1,14 @@
 ﻿namespace ProyectoGalactico.Models
 {
-    public record Event(int Id, string name, int year, string location, string
-        description, List<int> participantIds, List<int> deadIds, string? winner);
-    public record EventInput(string name, string year, string location,
-                         string description, List<int> participantIds,
-                         List<int> deadIds);
+    public class Event
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public int Year { get; set; }
+        public string Location { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public List<int> ParticipantsIds { get; set; } = new List<int>();
+        public List<int> DeadIds { get; set; } = new List<int>();
+        public string? Winner { get; set; }
+    }
 }
