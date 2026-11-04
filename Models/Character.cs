@@ -1,16 +1,19 @@
 ﻿namespace ProyectoGalactico.Models
 {
+    //enum faccion
     public class Character
     {
+
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Species { get; set; } = string.Empty;
-        public 
+        public faccion 
+        //}
+        //public record Character(int Id, string Name, string species, char faccion,
+        //                        string afiliacion, char estado, bool fuerzaSensitivo);
+        //public record CharacterInput(string name, string species, char faccion,
+        //                        string afiliacion, char estado, bool fuerzaSensitivo);
     }
-    public record Character(int Id, string Name, string species, char faccion,
-                            string afiliacion, char estado, bool fuerzaSensitivo);
-    public record CharacterInput(string name, string species, char faccion,
-                            string afiliacion, char estado, bool fuerzaSensitivo);
 }
 
 //namespace ProyectoGalactico.Models

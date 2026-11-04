@@ -3,6 +3,7 @@
     public class Event
     {
         public int Id { get; set; }
+        public string HashAutorizationCode { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public int Year { get; set; }
         public string Location { get; set; } = string.Empty;
