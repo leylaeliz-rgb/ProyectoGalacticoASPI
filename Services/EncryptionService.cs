@@ -11,7 +11,7 @@ namespace ProyectoGalactico.Services
 
         public EncryptionService(IConfiguration configuration)
         {
-            var claveBase64 = configuration["Cifrado:Clave"]
+            var claveBase64 = configuration["Cifrado:Clave"] // hay que settear en el secret manager uououououououououououououououou, DEBE VERSE CIFRADO EN LA BDD
                 ?? throw new InvalidOperationException("Falta el secreto Cifrado:Clave");
 
             _clave = Convert.FromBase64String(claveBase64);
