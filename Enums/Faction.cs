@@ -1,5 +1,5 @@
 ﻿
 namespace ProyectoGalactico.Enums
 {
-    public enum Faction { Rebelde, Imperio, Neutral }
+    public enum Faction { Autobot, Decepticon, Neutral }
 }

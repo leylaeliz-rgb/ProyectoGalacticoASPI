@@ -4,6 +4,7 @@ using ProyectoGalactico.Data;
 using ProyectoGalactico.Endpoints;
 using ProyectoGalactico.OpenApi;
 using ProyectoGalactico.Services;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddGalacticOpenApi();
@@ -16,7 +17,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         new MySqlServerVersion(new Version(8, 0, 42)), //version mysql
         MySqlOptions => MySqlOptions.EnableRetryOnFailure())); // Deben colocar la version de MySQL que tengan instalada en su máquina
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(
+        new JsonStringEnumConverter(allowIntegerValues: false)));
 builder.Services.AddOpenApi();
 //builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 //builder.Services.AddScoped<IProductoService, ProductoService>();

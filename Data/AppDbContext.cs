@@ -16,8 +16,11 @@ namespace ProyectoGalactico.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Character>
-
+            modelBuilder.Entity<Character>(e =>
+            {
+                e.Property(c => c.Faction).HasConversion<string>().HasMaxLength(20);
+                e.Property(c => c.CharacterState).HasConversion<string>().HasMaxLength(20);
+            });
 
         }
     }

@@ -1,5 +1,6 @@
 ﻿using ProyectoGalactico.Common;
 using ProyectoGalactico.Data;
+using ProyectoGalactico.Enums;
 using ProyectoGalactico.Models.Responses;
 
 namespace ProyectoGalactico.Services
@@ -18,8 +19,8 @@ namespace ProyectoGalactico.Services
                 if (index < 0) return ServiceResult<BattleResult>.NotFound($"No existe el evento {eventId}.");
                 var ev = DataForModels.Events[index];
 
-                var rebels = new List<FighterScore>();
-                var empire = new List<FighterScore>();
+                var decepticons = new List<FighterScore>();
+                var autobots = new List<FighterScore>();
                 var neutrals = new List<FighterScore>();
                 var missingCards = new List<string>();
 
@@ -37,8 +38,8 @@ namespace ProyectoGalactico.Services
 
                     switch (character.faccion)
                     {
-                        case 'R': rebels.Add(fighter); break;
-                        case 'I': empire.Add(fighter); break;
+                        case Faction.Decepticon : decepticons.Add(fighter); break;
+                        case Faction.Autobot : autobots.Add(fighter); break;
                         default: neutrals.Add(fighter); break;
                     }
                 }
