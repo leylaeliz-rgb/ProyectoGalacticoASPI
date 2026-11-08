@@ -1,7 +1,7 @@
 ﻿using ProyectoGalactico.Common;
 using ProyectoGalactico.Data;
+using ProyectoGalactico.Dtos.Responses;
 using ProyectoGalactico.Models;
-using ProyectoGalactico.Models.Responses;
 
 namespace ProyectoGalactico.Services
 {

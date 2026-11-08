@@ -1,4 +1,4 @@
-﻿using ProyectoGalactico.Models.Responses;
+﻿using ProyectoGalactico.Dtos.Responses;
 
 namespace ProyectoGalactico.OpenApi
 {

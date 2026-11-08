@@ -1,4 +1,4 @@
-﻿namespace ProyectoGalactico.Models.Responses
+﻿namespace ProyectoGalactico.Dtos.Responses
 {
     public record FighterScore(int CharacterId, string Name, string Affiliation, int CardId,
                                 int DangerousLevel, int SensitiveBonus, int Score);

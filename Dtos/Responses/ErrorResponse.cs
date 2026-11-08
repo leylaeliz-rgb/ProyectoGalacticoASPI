@@ -1,4 +1,4 @@
-﻿namespace ProyectoGalactico.Models.Responses
+﻿namespace ProyectoGalactico.Dtos.Responses
 {
     public record ErrorResponse(string Error);
 }
