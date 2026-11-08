@@ -1,7 +1,7 @@
-﻿using ProyectoGalactico.Models.Responses;
+﻿using ProyectoGalactico.Dtos.Responses;
 namespace ProyectoGalactico.Common
 {
-    public enum ResultStatus { Ok, NotFound, Invalid}
+    public enum ResultStatus { Ok, NotFound, Invalid, Conflict}
     public record ServiceResult<T>(ResultStatus Status, T? Value, string? Error)
     {
         public static ServiceResult<T> Ok(T value) => new(ResultStatus.Ok, value, null);

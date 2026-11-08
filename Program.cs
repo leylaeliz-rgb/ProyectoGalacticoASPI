@@ -20,10 +20,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddControllers()
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(
         new JsonStringEnumConverter(allowIntegerValues: false)));
+
 builder.Services.AddOpenApi();
-//builder.Services.AddScoped<ICategoriaService, CategoriaService>();
-//builder.Services.AddScoped<IProductoService, ProductoService>();
-// evitar que la cadena de conexión y cifrado clave se vayan al git o repositorio
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

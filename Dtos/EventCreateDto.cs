@@ -10,7 +10,7 @@ namespace ProyectoGalactico.Dtos
 
         [Required(ErrorMessage = "El nombre es obligatorio" )]
         [StringLength( 100 )]
-        public string Nombre { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El año es obligatorio")]
         [Range(1, 999999, ErrorMessage = "El año debe ser un número positivo")]

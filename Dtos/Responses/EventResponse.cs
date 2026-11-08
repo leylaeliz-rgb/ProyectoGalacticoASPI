@@ -1,4 +1,4 @@
-﻿namespace ProyectoGalactico.Dtos.Responses
+﻿namespace ProyectoGalactico.Dtos
 {
     public record EventResponse(int Id, string Name, string Date, int Year, string Location,
                                  string Description, List<int> ParticipantIds,

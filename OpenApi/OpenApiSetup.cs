@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Nodes;
 using ProyectoGalactico.Models;
+using ProyectoGalactico.Dtos;
 
 namespace ProyectoGalactico.OpenApi
 {
@@ -65,7 +66,7 @@ namespace ProyectoGalactico.OpenApi
                 {
                     var type = context.JsonTypeInfo.Type;
 
-                    if (type == typeof(CharacterInput))
+                    if (type == typeof(CharacterCreateDto))
                         schema.Example = new JsonObject
                         {
                             ["name"] = "Bumblebee",
@@ -75,7 +76,7 @@ namespace ProyectoGalactico.OpenApi
                             ["estado"] = "V",
                             ["fuerzaSensitivo"] = false
                         };
-                    else if (type == typeof(CardsCharacterInput))
+                    else if (type == typeof(CardCharacterCreateDto))
                         schema.Example = new JsonObject
                         {
                             ["characterId"] = 3,
@@ -85,7 +86,7 @@ namespace ProyectoGalactico.OpenApi
                             ["dangerousLevel"] = 6,
                             ["pictureUrl"] = "https://ejemplo.com/leia2.png"
                         };
-                    else if (type == typeof(EventInput))
+                    else if (type == typeof(EventCreateDto))
                         schema.Example = new JsonObject
                         {
                             ["name"] = "Rescate en Bespin",
