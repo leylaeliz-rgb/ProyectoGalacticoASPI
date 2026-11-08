@@ -6,7 +6,7 @@ namespace ProyectoGalactico.Models
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Species { get; set; } = string.Empty;
-        public Faction Faction { get; set; }
+        public Faction? Faction { get; set; }
         public CharacterState CharacterState { get; set; }
         public bool IsActive { get; set; }
         public bool SensoryForce { get; set; }

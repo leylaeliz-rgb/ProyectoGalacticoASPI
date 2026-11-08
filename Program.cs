@@ -22,6 +22,7 @@ builder.Services.AddControllers()
         new JsonStringEnumConverter(allowIntegerValues: false)));
 
 builder.Services.AddOpenApi();
+builder.Services.AddScoped<ICharacterService, CharacterService>();
 
 var app = builder.Build();
 

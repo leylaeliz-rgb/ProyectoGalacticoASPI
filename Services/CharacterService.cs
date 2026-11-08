@@ -1,11 +1,16 @@
 ﻿using ProyectoGalactico.Common;
 using ProyectoGalactico.Data;
+using ProyectoGalactico.Dtos;
 using ProyectoGalactico.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace ProyectoGalactico.Services
 {
     public class CharacterService : ICharacterService
     {
+        private readonly AppDbContext _db;
         // Las listas son estáticas y compartidas: el lock evita choques entre peticiones
         //public ServiceResult<List<Character>> GetAll(string? faccion, bool? fuerzaSensitivo)
         //{
