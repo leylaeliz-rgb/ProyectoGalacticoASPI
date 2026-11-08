@@ -7,6 +7,5 @@ obj/
 *.csproj.user
 
 # Archivos de configuración con posibles credenciales o variables locales
-appsettings.json
-appsettings.Development.json
+
 nul
