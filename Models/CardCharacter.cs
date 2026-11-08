@@ -1,7 +1,14 @@
 ﻿namespace ProyectoGalactico.Models
 {
-    public record CardCharacter(int Id, int characterId, string power, string SpecialHability
-                        , string weapon, int dangerousLevel, string pictureUrl);
-    public record CardsCharacterInput(int characterId, string power, string SpecialHability
-                        , string weapon, int dangerousLevel, string pictureUrl);
+    public class CardCharacter
+    {
+        public int Id { get; set; }
+        public int CharacterId { get; set; }          // clave foránea
+        public Character? Character { get; set; }
+        public string Power { get; set; } = string.Empty;
+        public string SpecialHability { get; set; } = string.Empty;
+        public string Weapon { get; set; } = string.Empty;
+        public int DangerousLevel { get; set; }
+        public string PictureUrl { get; set; } = string.Empty;
+    }
 }

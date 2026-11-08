@@ -12,6 +12,7 @@ namespace ProyectoGalactico.Models
         public CharacterState CharacterState { get; set; }
         public bool IsActive { get; set; }
         public bool SensoryForce { get; set; }
-       
+        public List<CardCharacter> Cards { get; set; } = new();
+
     }
 }
