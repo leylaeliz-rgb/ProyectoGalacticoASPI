@@ -20,9 +20,5 @@ namespace ProyectoGalactico.Dtos
 
     
         public bool SensoryForce { get; set; }
-
-        public List<CardCharacter> Cards { get; set; } = new();
-
-
     }
 }

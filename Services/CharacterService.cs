@@ -17,7 +17,7 @@ public class CharacterService(AppDbContext db) : ICharacterService
         if (!string.IsNullOrWhiteSpace(faction))
         {
             if (!Enum.TryParse<Faction>(faction, true, out var value) || !Enum.IsDefined(value))
-                return ServiceResult<List<CharacterDto>>.Invalid("Facción no válida. Usa Rebelde, Imperio o Neutral.");
+                return ServiceResult<List<CharacterDto>>.Invalid("Facción no válida. Usa Autobot, Decepticon o Neutral.");
             parsedFaction = value;
         }
 
@@ -92,7 +92,7 @@ public class CharacterService(AppDbContext db) : ICharacterService
         var appearsInEvent = (await _db.Events.AsNoTracking().ToListAsync())
             .Any(e => e.ParticipantsIds.Contains(id));
         if (appearsInEvent)
-            return ServiceResult<bool>.Invalid("No se puede eliminar: el personaje participa en eventos.");
+            return ServiceResult<bool>.Conflict("No se puede eliminar: el personaje participa en eventos.");
 
         _db.Characters.Remove(character);
         await _db.SaveChangesAsync();
@@ -108,6 +108,15 @@ public class CharacterService(AppDbContext db) : ICharacterService
         CharacterState = character.CharacterState,
         IsActive = character.IsActive,
         SensoryForce = character.SensoryForce,
-        Cards = character.Cards.ToList()
+        Cards = character.Cards.Select(c => new CardCharacterDto
+        {
+            Id = c.Id,
+            CharacterId = c.CharacterId,
+            Power = c.Power,
+            SpecialHability = c.SpecialHability,
+            Weapon = c.Weapon,
+            DangerousLevel = c.DangerousLevel,
+            PictureUrl = c.PictureUrl
+        }).ToList()
     };
 }
