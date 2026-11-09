@@ -13,7 +13,7 @@ public class GameController(BattleService battle, RankingService ranking) : Cont
 {
     [HttpPost("/eventos/{id:int}/simular")]
     [EndpointSummary("Simula la batalla de un evento")]
-    [EndpointDescription("Autobot contra Decepticon; los neutrales dan apoyo. Usa ?seed=N para repetir el mismo resultado. Guarda el ganador cifrado en el evento.")]
+    [EndpointDescription("Autobot contra Decepticon; los neutrales dan apoyo. Guarda el ganador cifrado en el evento.")]
     [ProducesResponseType(typeof(BattleResult), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
