@@ -1,11 +1,9 @@
 .vs/
-
 bin/
 obj/
-
-# Archivos de configuración personal de Visual Studio / usuario
+*.user
+*.suo
 *.csproj.user
-
-# Archivos de configuración con posibles credenciales o variables locales
-
-nul
+.env
+.env.*
+!.env.example
