@@ -33,11 +33,8 @@ public class RankingService(AppDbContext db)
             .Where(c => c.Cards.Count > 0)
             .Select(c =>
             {
-                var bestCard = c.Cards
-                    .Where(card => card.IsAvailable)
-                    .OrderByDescending(card => card.DangerousLevel)
-                    .ThenBy(card => card.Id)
-                    .FirstOrDefault();
+                var bestCard = c.Cards.OrderByDescending(card => card.DangerousLevel)
+                    .ThenBy(card => card.Id).First();
                 return new
                 {
                     Character = c,

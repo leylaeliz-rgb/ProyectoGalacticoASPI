@@ -26,4 +26,12 @@ public class GameController(BattleService battle, RankingService ranking) : Cont
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetRanking([FromQuery] string? por, [FromQuery] string? faction)
         => (await ranking.GetRankingAsync(por, faction)).ToActionResult(this);
+
+    [HttpGet("/personajes/{id:int}/historial")]
+    [EndpointSummary("Consulta el historial de batallas de un personaje")]
+    [EndpointDescription("Devuelve los eventos en los que participó el personaje y las consecuencias de cada batalla.")]
+    [ProducesResponseType(typeof(List<BattleHistoryItem>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetHistory(int id)
+    => (await battle.GetHistoryAsync(id)).ToActionResult(this);
 }

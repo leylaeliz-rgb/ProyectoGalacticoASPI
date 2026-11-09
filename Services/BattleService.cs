@@ -271,6 +271,50 @@ public class BattleService(AppDbContext db, IEncryptionService encryption)
             consequences);
 
         return ServiceResult<BattleResult>.Ok(result);
+
+
+    }
+
+    public async Task<ServiceResult<List<BattleHistoryItem>>> GetHistoryAsync(
+    int characterId)
+    {
+        // 1. Verificar que el personaje exista.
+        var characterExists = await _db.Characters
+            .AnyAsync(c => c.Id == characterId);
+
+        if (!characterExists)
+        {
+            return ServiceResult<List<BattleHistoryItem>>.NotFound(
+                $"No existe el personaje {characterId}.");
+        }
+
+        // 2. Consultar los registros históricos del personaje.
+        var records = await _db.BattleRecords
+            .AsNoTracking()
+            .Include(br => br.Event)
+            .Where(br => br.CharacterId == characterId)
+            .OrderBy(br => br.Event!.Year)
+            .ThenBy(br => br.EventId)
+            .ToListAsync();
+
+        // 3. Convertir los registros al DTO de respuesta.
+        var history = records.Select(br => new BattleHistoryItem(
+            br.Id,
+            br.EventId,
+            br.Event!.Name,
+            br.Event.Year,
+            br.Event.Location,
+            br.Event.Winner is null
+                ? null
+                : _encryption.Decrypt(br.Event.Winner),
+            br.CardId,
+            br.Outcome,
+            br.Roll,
+            br.SurvivalRatio,
+            br.Reappeared
+        )).ToList();
+
+        return ServiceResult<List<BattleHistoryItem>>.Ok(history);
     }
 
     private static (double autobot, double decepticon, string note)
