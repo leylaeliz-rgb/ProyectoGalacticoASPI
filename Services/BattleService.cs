@@ -32,8 +32,11 @@ public class BattleService(AppDbContext db, IEncryptionService encryption)
 
         foreach (var character in characters)
         {
-            var card = character.Cards.OrderByDescending(c => c.DangerousLevel)
-                .ThenBy(c => c.Id).FirstOrDefault();
+            var card = character.Cards
+                .Where(c => c.IsAvailable)
+                .OrderByDescending(c => c.DangerousLevel)
+                .ThenBy(c => c.Id)
+                .FirstOrDefault();
             if (card is null)
             {
                 missingCards.Add(character.Name);
