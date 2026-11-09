@@ -1,12 +1,35 @@
-﻿using ProyectoGalactico.Enums;
+﻿
+using ProyectoGalactico.Enums;
 
 namespace ProyectoGalactico.Dtos.Responses
 {
-    public record FighterScore(int CharacterId, string Name, int CardId,
-                               int DangerousLevel, int SensitiveBonus, int Score);
+    public record FighterScore(
+        int CharacterId,
+        string Name,
+        int CardId,
+        int DangerousLevel,
+        int SensitiveBonus,
+        int Score
+    );
 
-    public record SideResult(string Faction, List<FighterScore> Members, double BaseTotal,
-                             double Support, double Factor, double FinalTotal);
+    public record SideResult(
+        string Faction,
+        List<FighterScore> Members,
+        double BaseTotal,
+        double Support,
+        double Factor,
+        double FinalTotal
+    );
+
+    public record BattleConsequence(
+        int CharacterId,
+        string CharacterName,
+        int? CardId,
+        int? Roll,
+        int? SurvivalRatio,
+        BattleOutcome Outcome,
+        bool Reappeared
+    );
 
     public record BattleResult(
         int EventId,
@@ -20,12 +43,4 @@ namespace ProyectoGalactico.Dtos.Responses
         int Seed,
         List<BattleConsequence> Consequences
     );
-    public record BattleConsequence(
-    int CharacterId,
-    string CharacterName,
-    int CardId,
-    int? Roll,
-    int SurvivalRatio,
-    BattleOutcome Outcome
-);
 }
