@@ -102,7 +102,6 @@ namespace ProyectoGalactico.OpenApi
                             ["location"] = "Ciudad de Iacon",
                             ["description"] = "Los mineros, los cybertronianos buscan un futuro mejor, un fututo más justo.",
                             ["participantsIds"] = new JsonArray(1, 2, 3, 4),
-                            ["deadIds"] = new JsonArray()
                         }
                         };
 
