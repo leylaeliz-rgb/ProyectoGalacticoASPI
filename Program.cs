@@ -1,35 +1,46 @@
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Pomelo.EntityFrameworkCore.MySql.Internal;
 using ProyectoGalactico.Data;
 using ProyectoGalactico.Endpoints;
+using ProyectoGalactico.Models;
 using ProyectoGalactico.OpenApi;
 using ProyectoGalactico.Services;
-using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddGalacticOpenApi();
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("Falta la cadena de conexión DefaultConnection");
+    ?? throw new InvalidOperationException("Falta la cadena de conexión ConnectionStrings:DefaultConnection.");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
         connectionString,
-        new MySqlServerVersion(new Version(8, 0, 46)), //version mysql
-        MySqlOptions => MySqlOptions.EnableRetryOnFailure())); // Deben colocar la version de MySQL que tengan instalada en su máquina
+        new MySqlServerVersion(new Version(8, 0, 46)),
+        mysqlOptions => mysqlOptions.EnableRetryOnFailure()));
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: false)));
 
 builder.Services.AddControllers()
-    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(
-        new JsonStringEnumConverter(allowIntegerValues: false)));
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(
+            new JsonStringEnumConverter(allowIntegerValues: false)));
 
-builder.Services.AddOpenApi();
+builder.Services.AddAuthorization();
+builder.Services.AddGalacticOpenApi();
+
 builder.Services.AddScoped<ICharacterService, CharacterService>();
+builder.Services.AddScoped<IEventService, EventService>();
+builder.Services.AddScoped<CardService>();
+builder.Services.AddScoped<BattleService>();
+builder.Services.AddScoped<RankingService>();
+builder.Services.AddScoped<IEncryptionService, EncryptionService>();
+builder.Services.AddScoped<IPasswordHasher<Event>, PasswordHasher<Event>>();
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
-{
     app.UseGalacticSwagger();
-}
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
@@ -39,5 +50,10 @@ app.MapCharacterEndpoints();
 app.MapCardEndpoints();
 app.MapEventEndpoints();
 app.MapGameEndpoints();
+
+app.MapGet("/health/db", async (AppDbContext db) =>
+    await db.Database.CanConnectAsync()
+        ? Results.Ok(new { status = "ok", database = "connected" })
+        : Results.Problem("No fue posible conectar con la base de datos."));
 
 app.Run();
