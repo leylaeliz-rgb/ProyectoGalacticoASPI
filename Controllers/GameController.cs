@@ -9,7 +9,7 @@ namespace ProyectoGalactico.Controllers;
 [ApiController]
 [Tags("Juego")]
 [ApiExplorerSettings(GroupName = "v1")]
-public class GameController(BattleService battle, RankingService ranking) : ControllerBase
+public class GameController(IBattleService battle, RankingService ranking) : ControllerBase
 {
     [HttpPost("/eventos/{id:int}/simular")]
     [EndpointSummary("Simula la batalla de un evento")]

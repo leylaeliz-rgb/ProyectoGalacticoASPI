@@ -8,7 +8,7 @@ using ProyectoGalactico.Models;
 
 namespace ProyectoGalactico.Services;
 
-public class BattleService(AppDbContext db, IEncryptionService encryption)
+public class BattleService(AppDbContext db, IEncryptionService encryption) : IBattleService
 {
     private const double SupportRate = 0.5;
     private const double MinFactor = 0.9;
