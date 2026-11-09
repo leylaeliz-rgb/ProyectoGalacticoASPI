@@ -1,40 +1,54 @@
-﻿using ProyectoGalactico.Common;
+﻿using Microsoft.EntityFrameworkCore;
+using ProyectoGalactico.Common;
 using ProyectoGalactico.Data;
 using ProyectoGalactico.Dtos.Responses;
+using ProyectoGalactico.Enums;
+using static ProyectoGalactico.Dtos.Responses.RankingResponses;
 
-namespace ProyectoGalactico.Services
+namespace ProyectoGalactico.Services;
+
+public class RankingService(AppDbContext db)
 {
-    public class RankingService(CardService cards)
+    private readonly AppDbContext _db = db;
+
+    public async Task<ServiceResult<List<RankingItem>>> GetRankingAsync(string? by, string? faction)
     {
-        public ServiceResult<List<RankingItem>> GetRanking(string? por, string? faccion)
+        if (!string.IsNullOrWhiteSpace(by) &&
+            !string.Equals(by.Trim(), "poder", StringComparison.OrdinalIgnoreCase))
+            return ServiceResult<List<RankingItem>>.Invalid("Criterio no válido. Por ahora solo se admite por=poder.");
+
+        Faction? parsedFaction = null;
+        if (!string.IsNullOrWhiteSpace(faction))
         {
-            var criterion = (por ?? "poder").Trim().ToLowerInvariant();
-            if (criterion != "poder")
-                return ServiceResult<List<RankingItem>>.Invalid("Criterio no válido. Por ahora solo se admite por=poder.");
-
-            char? code = null;
-            if (faccion is not null)
-            {
-                code = GameCodes.ParseFaction(faccion);
-                if (code is null)
-                    return ServiceResult<List<RankingItem>>.Invalid("Facción no válida. Usa Rebelde, Imperio o Neutral.");
-            }
-
-            lock (DataForModels.Sync)
-            {
-                var ranking = DataForModels.Characters
-                    .Where(c => code is null || c.faccion == code)
-                    .Select(c => (Person: c, Best: cards.GetBestCard(c.Id)))
-                    .Where(x => x.Best is not null)
-                    .Select(x => (x.Person, Best: x.Best!, Score: PowerCalculator.Score(x.Person, x.Best!)))
-                    .OrderByDescending(x => x.Score).ThenBy(x => x.Person.Id) // empate: menor id primero
-                    .Select((x, i) => new RankingItem(i + 1, x.Person.Id, x.Person.Name,
-                        GameCodes.FactionName(x.Person.faccion), x.Person.afiliacion, x.Best.Id,
-                        x.Best.dangerousLevel, PowerCalculator.Bonus(x.Person), x.Score))
-                    .ToList();
-
-                return ServiceResult<List<RankingItem>>.Ok(ranking);
-            }
+            if (!Enum.TryParse<Faction>(faction, true, out var value) || !Enum.IsDefined(value))
+                return ServiceResult<List<RankingItem>>.Invalid("Facción no válida. Usa Rebelde, Imperio o Neutral.");
+            parsedFaction = value;
         }
+
+        var query = _db.Characters.AsNoTracking().Include(c => c.Cards).AsQueryable();
+        if (parsedFaction.HasValue) query = query.Where(c => c.Faction == parsedFaction.Value);
+
+        var characters = await query.ToListAsync();
+        var ranking = characters
+            .Where(c => c.Cards.Count > 0)
+            .Select(c =>
+            {
+                var bestCard = c.Cards.OrderByDescending(card => card.DangerousLevel)
+                    .ThenBy(card => card.Id).First();
+                return new
+                {
+                    Character = c,
+                    Card = bestCard,
+                    Score = PowerCalculator.Score(c, bestCard)
+                };
+            })
+            .OrderByDescending(x => x.Score)
+            .ThenBy(x => x.Character.Id)
+            .Select((x, index) => new RankingItem(index + 1, x.Character.Id, x.Character.Name,
+                (x.Character.Faction ?? Faction.Neutral).ToString(), x.Card.Id,
+                x.Card.DangerousLevel, PowerCalculator.Bonus(x.Character), x.Score))
+            .ToList();
+
+        return ServiceResult<List<RankingItem>>.Ok(ranking);
     }
 }
