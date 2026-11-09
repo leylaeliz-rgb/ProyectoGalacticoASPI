@@ -94,7 +94,7 @@ namespace ProyectoGalactico.Services
             var verification = _hasher.VerifyHashedPassword(
                 eventEntity, eventEntity.HashAutorizationCode, dto.AutorizationCode);
             if (verification == PasswordVerificationResult.Failed)
-                return ServiceResult<EventDto>.Invalid("El código de autorización es incorrecto.");
+                return ServiceResult<EventDto>.Forbidden("El código de autorización es incorrecto.");
 
             var error = await ValidateAsync(dto, eventEntity);
             if (error is not null) return ServiceResult<EventDto>.Invalid(error);

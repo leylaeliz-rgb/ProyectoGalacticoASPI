@@ -2,7 +2,6 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ProyectoGalactico.Data;
-using ProyectoGalactico.Endpoints;
 using ProyectoGalactico.Models;
 using ProyectoGalactico.OpenApi;
 using ProyectoGalactico.Services;
@@ -46,10 +45,6 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
-app.MapCharacterEndpoints();
-app.MapCardEndpoints();
-app.MapEventEndpoints();
-app.MapGameEndpoints();
 
 app.MapGet("/health/db", async (AppDbContext db) =>
     await db.Database.CanConnectAsync()

@@ -1,6 +1,7 @@
-﻿using System.Text.Json.Nodes;
+﻿using ProyectoGalactico.Dtos;
 using ProyectoGalactico.Models;
-using ProyectoGalactico.Dtos;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Nodes;
 
 namespace ProyectoGalactico.OpenApi
 {
@@ -22,7 +23,7 @@ namespace ProyectoGalactico.OpenApi
                             **Cómo jugar**
                             1. `GET /personajes` para ver quién existe (filtra con `faccion` y `fuerzaSensitivo`).
                             2. `GET /eventos` para ver los eventos en orden cronológico.
-                            3. `POST /eventos/{id}/simular` para simular una batalla: Rebelde contra Imperio, y los neutrales dan apoyo al bando más débil.
+                            3. `POST /eventos/{id}/simular` para simular una batalla: Autobots vs Decepticons, y los neutrales dan apoyo al bando más débil.
                             4. `GET /personajes/ranking?por=poder` para ver quién es el más poderoso.
 
                             **Poder** = peligrosidad de la mejor carta + 2 si el personaje es sensible a la Fuerza.
@@ -46,10 +47,10 @@ namespace ProyectoGalactico.OpenApi
                             Crea y modifica personajes, cartas y eventos.
 
                             **Códigos**
-                            - Facción: `R` Rebelde, `I` Imperio, `N` Neutral.
+                            - Facción: `D` Decepticon, `A` Autobot, `N` Neutral.
                             - Estado: `V` vivo, `M` muerto, `D` desconocido.
 
-                            **Fechas** de eventos: `10 BBY`, `3 ABY` o `Batalla de Yavin`.
+                            **Fechas** de eventos: `10 AD`, `3 DP` o `Caída de los Primes`.
 
                             **Reglas**
                             - Un personaje pasa a muerto solo cuando un evento lo registra en `deadIds`.
@@ -71,10 +72,8 @@ namespace ProyectoGalactico.OpenApi
                         {
                             ["name"] = "Bumblebee",
                             ["species"] = "Cybertroniano",
-                            ["faccion"] = "I",
-                            ["afiliacion"] = "Autobots",
-                            ["estado"] = "V",
-                            ["fuerzaSensitivo"] = false
+                            ["faction"] = "Autobot",
+                            ["sensoryForce"] = false
                         };
                     else if (type == typeof(CardCharacterCreateDto))
                         schema.Example = new JsonObject
@@ -84,15 +83,16 @@ namespace ProyectoGalactico.OpenApi
                             ["specialHability"] = "Discurso inspirador",
                             ["weapon"] = "Blaster",
                             ["dangerousLevel"] = 6,
-                            ["pictureUrl"] = "https://ejemplo.com/leia2.png"
+                            ["pictureUrl"] = "https://i.pinimg.com/736x/01/63/78/01637820c08fda36de1cb929ebf4da5b.jpg"
                         };
                     else if (type == typeof(EventCreateDto))
                         schema.Example = new JsonObject
                         {
-                            ["name"] = "Rescate en Bespin",
-                            ["date"] = "3 ABY",
-                            ["location"] = "Bespin",
-                            ["description"] = "Los rebeldes intentan escapar de la Ciudad de las Nubes.",
+                            ["autorization code"] = "ContraseñaSegura123",
+                            ["name"] = "Resurgimiento de un nuevo Prime",
+                            ["date"] = "4 DP",
+                            ["location"] = "Ciudad de Iacon",
+                            ["description"] = "Los mineros, los cybertronianos buscan un futuro mejor, un fututo más justo.",
                             ["participantIds"] = new JsonArray(1, 2, 3, 4),
                             ["deadIds"] = new JsonArray()
                         };
