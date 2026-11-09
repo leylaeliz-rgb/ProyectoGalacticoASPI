@@ -94,8 +94,8 @@ public class BattleService(AppDbContext db, IEncryptionService encryption)
         double rebelBase, double empireBase, double support)
     {
         if (support == 0) return (0, 0, "No hubo neutrales: sin apoyo.");
-        if (rebelBase < empireBase) return (support, 0, "Los neutrales apoyaron al bando Rebelde (el más débil).");
-        if (empireBase < rebelBase) return (0, support, "Los neutrales apoyaron al bando Imperio (el más débil).");
+        if (rebelBase < empireBase) return (support, 0, "Los neutrales apoyaron al bando Deccepticon (el más débil).");
+        if (empireBase < rebelBase) return (0, support, "Los neutrales apoyaron al bando Autobot (el más débil).");
         return (support / 2, support / 2, "Bandos empatados: el apoyo neutral se repartió por igual.");
     }
 

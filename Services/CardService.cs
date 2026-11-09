@@ -6,7 +6,7 @@ using ProyectoGalactico.Models;
 
 namespace ProyectoGalactico.Services;
 
-public class CardService(AppDbContext db)
+public class CardService(AppDbContext db) : ICardService
 {
     private readonly AppDbContext _db = db;
 

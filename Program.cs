@@ -30,7 +30,7 @@ builder.Services.AddGalacticOpenApi();
 
 builder.Services.AddScoped<ICharacterService, CharacterService>();
 builder.Services.AddScoped<IEventService, EventService>();
-builder.Services.AddScoped<CardService>();
+builder.Services.AddScoped<ICardService, CardService>();
 builder.Services.AddScoped<BattleService>();
 builder.Services.AddScoped<RankingService>();
 builder.Services.AddScoped<IEncryptionService, EncryptionService>();
