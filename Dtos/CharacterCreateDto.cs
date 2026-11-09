@@ -17,8 +17,6 @@ namespace ProyectoGalactico.Dtos
 
         [Required(ErrorMessage = "La facción a la que pertenece es obligatoria")]
         public Faction? Faction { get; set; }
-
-    
         public bool SensoryForce { get; set; }
     }
 }

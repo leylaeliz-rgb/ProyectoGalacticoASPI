@@ -29,7 +29,4 @@ public class EventCreateDto
 
     [MinLength(1, ErrorMessage = "Debe haber al menos un participante.")]
     public List<int> ParticipantsIds { get; set; } = new();
-
-
-    public List<int> DeadIds { get; set; } = new();
 }

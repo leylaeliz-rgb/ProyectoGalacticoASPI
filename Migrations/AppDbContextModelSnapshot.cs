@@ -21,6 +21,48 @@ namespace ProyectoGalactico.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("BattleRecord", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CardId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CharacterId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EventId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Outcome")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<bool>("Reappeared")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int?>("Roll")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SurvivalRatio")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CardId");
+
+                    b.HasIndex("CharacterId");
+
+                    b.HasIndex("EventId");
+
+                    b.ToTable("BattleRecords");
+                });
+
             modelBuilder.Entity("ProyectoGalactico.Models.CardCharacter", b =>
                 {
                     b.Property<int>("Id")
@@ -34,6 +76,9 @@ namespace ProyectoGalactico.Migrations
 
                     b.Property<int>("DangerousLevel")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("PictureUrl")
                         .IsRequired()
@@ -49,6 +94,9 @@ namespace ProyectoGalactico.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
+
+                    b.Property<int>("SurvivalRatio")
+                        .HasColumnType("int");
 
                     b.Property<string>("Weapon")
                         .IsRequired()
@@ -147,6 +195,32 @@ namespace ProyectoGalactico.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Events");
+                });
+
+            modelBuilder.Entity("BattleRecord", b =>
+                {
+                    b.HasOne("ProyectoGalactico.Models.CardCharacter", "Card")
+                        .WithMany()
+                        .HasForeignKey("CardId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ProyectoGalactico.Models.Character", "Character")
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ProyectoGalactico.Models.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Card");
+
+                    b.Navigation("Character");
+
+                    b.Navigation("Event");
                 });
 
             modelBuilder.Entity("ProyectoGalactico.Models.CardCharacter", b =>

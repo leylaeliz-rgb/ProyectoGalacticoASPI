@@ -25,15 +25,18 @@ public class BattleService(AppDbContext db, IEncryptionService encryption)
             .Where(c => eventEntity.ParticipantsIds.Contains(c.Id))
             .ToListAsync();
 
-        var rebels = new List<FighterScore>();
-        var empire = new List<FighterScore>();
+        var autobots = new List<FighterScore>();
+        var decepticons = new List<FighterScore>();
         var neutrals = new List<FighterScore>();
         var missingCards = new List<string>();
 
         foreach (var character in characters)
         {
-            var card = character.Cards.OrderByDescending(c => c.DangerousLevel)
-                .ThenBy(c => c.Id).FirstOrDefault();
+            var card = character.Cards
+                .Where(c => c.IsAvailable)
+                .OrderByDescending(c => c.DangerousLevel)
+                .ThenBy(c => c.Id)
+                .FirstOrDefault();
             if (card is null)
             {
                 missingCards.Add(character.Name);
@@ -46,33 +49,46 @@ public class BattleService(AppDbContext db, IEncryptionService encryption)
 
             switch (character.Faction)
             {
-                case Faction.Autobot: rebels.Add(fighter); break;
-                case Faction.Decepticon: empire.Add(fighter); break;
-                default: neutrals.Add(fighter); break;
+                case Faction.Autobot:
+                    autobots.Add(fighter);
+                    break;
+
+                case Faction.Decepticon:
+                    decepticons.Add(fighter);
+                    break;
+
+                default:
+                    neutrals.Add(fighter);
+                    break;
             }
         }
 
         if (missingCards.Count > 0)
             return ServiceResult<BattleResult>.Invalid($"Faltan cartas para: {string.Join(", ", missingCards)}.");
-        if (rebels.Count == 0 || empire.Count == 0)
+        if (autobots.Count == 0 || decepticons.Count == 0)
             return ServiceResult<BattleResult>.Invalid(
                 "La simulación necesita al menos un participante Autobot y uno Decepticon. Los neutrales solo dan apoyo.");
 
-        var rebelBase = rebels.Sum(f => f.Score);
-        var empireBase = empire.Sum(f => f.Score);
+        var autobotBase = autobots.Sum(f => f.Score);
+        var decepticonBase = decepticons.Sum(f => f.Score);
+
         var supportPool = neutrals.Sum(f => f.Score) * SupportRate;
-        var (rebelSupport, empireSupport, supportNote) =
-            DistributeSupport(rebelBase, empireBase, supportPool);
+
+        var (autobotSupport, decepticonSupport, supportNote) =
+            DistributeSupport(autobotBase, decepticonBase, supportPool);
 
         var usedSeed = seed ?? Random.Shared.Next();
         var random = new Random(usedSeed);
-        var rebelFactor = RollFactor(random);
-        var empireFactor = RollFactor(random);
-        var rebelFinal = Math.Round((rebelBase + rebelSupport) * rebelFactor, 2);
-        var empireFinal = Math.Round((empireBase + empireSupport) * empireFactor, 2);
 
-        var winner = rebelFinal > empireFinal ? "Autobot"
-            : empireFinal > rebelFinal ? "Decepticon" : "Empate";
+        var autobotFactor = RollFactor(random);
+        var decepticonFactor = RollFactor(random);
+
+        var autobotFinal = Math.Round((autobotBase + autobotSupport) * autobotFactor, 2);
+        var decepticonFinal = Math.Round((decepticonBase + decepticonSupport) * decepticonFactor, 2);
+
+        var winner = autobotFinal > decepticonFinal ? "Autobot"
+            : decepticonFinal > autobotFinal ? "Decepticon"
+            : "Empate";
 
         eventEntity.Winner = _encryption.Encrypt(winner);
         await _db.SaveChangesAsync();
@@ -82,21 +98,36 @@ public class BattleService(AppDbContext db, IEncryptionService encryption)
             $"Cada bando suma sus poderes, recibe el apoyo neutral si corresponde y se multiplica por un factor aleatorio entre {MinFactor} y {MaxFactor}. " +
             "Gana el total final más alto.";
 
-        var result = new BattleResult(eventEntity.Id, eventEntity.Name,
-            new SideResult("Autobot", rebels, rebelBase, Math.Round(rebelSupport, 2), rebelFactor, rebelFinal),
-            new SideResult("Decepticon", empire, empireBase, Math.Round(empireSupport, 2), empireFactor, empireFinal),
-            neutrals, supportNote, winner, criteria, usedSeed);
+        var result = new BattleResult(
+            eventEntity.Id,
+            eventEntity.Name,
+            new SideResult("Autobot", autobots, autobotBase,
+                Math.Round(autobotSupport, 2), autobotFactor, autobotFinal),
+            new SideResult("Decepticon", decepticons, decepticonBase,
+                Math.Round(decepticonSupport, 2), decepticonFactor, decepticonFinal),
+            neutrals,
+            supportNote,
+            winner,
+            criteria,
+            usedSeed);
 
         return ServiceResult<BattleResult>.Ok(result);
     }
 
-    private static (double rebel, double empire, string note) DistributeSupport(
-        double rebelBase, double empireBase, double support)
+    private static (double autobot, double decepticon, string note) DistributeSupport(
+        double autobotBase, double decepticonBase, double support)
     {
-        if (support == 0) return (0, 0, "No hubo neutrales: sin apoyo.");
-        if (rebelBase < empireBase) return (support, 0, "Los neutrales apoyaron al bando Deccepticon (el más débil).");
-        if (empireBase < rebelBase) return (0, support, "Los neutrales apoyaron al bando Autobot (el más débil).");
-        return (support / 2, support / 2, "Bandos empatados: el apoyo neutral se repartió por igual.");
+        if (support == 0)
+            return (0, 0, "No hubo neutrales: sin apoyo.");
+
+        if (autobotBase < decepticonBase)
+            return (support, 0, "Los neutrales apoyaron al bando Autobot (el más débil).");
+
+        if (decepticonBase < autobotBase)
+            return (0, support, "Los neutrales apoyaron al bando Decepticon (el más débil).");
+
+        return (support / 2, support / 2,
+            "Bandos empatados: el apoyo neutral se repartió por igual.");
     }
 
     private static double RollFactor(Random random) =>

@@ -71,12 +71,13 @@ namespace ProyectoGalactico.Services
                 Location = dto.Location.Trim(),
                 Description = dto.Description.Trim(),
                 ParticipantsIds = dto.ParticipantsIds.Distinct().ToList(),
-                DeadIds = dto.DeadIds.Distinct().ToList()
+                DeadIds = new List<int>()
             };
 
-            eventEntity.HashAutorizationCode = _hasher.HashPassword(eventEntity, dto.AutorizationCode);
+            eventEntity.HashAutorizationCode =
+                _hasher.HashPassword(eventEntity, dto.AutorizationCode);
+
             _db.Events.Add(eventEntity);
-            await ApplyDeathsAsync(eventEntity.DeadIds);
             await _db.SaveChangesAsync();
 
             return ServiceResult<EventDto>.Ok(ADto(eventEntity));
@@ -107,12 +108,10 @@ namespace ProyectoGalactico.Services
             eventEntity.Location = dto.Location.Trim();
             eventEntity.Description = dto.Description.Trim();
             eventEntity.ParticipantsIds = dto.ParticipantsIds.Distinct().ToList();
-            eventEntity.DeadIds = dto.DeadIds.Distinct().ToList();
             eventEntity.HashAutorizationCode = _hasher.HashPassword(eventEntity, dto.AutorizationCode);
 
             if (!sameParticipants) eventEntity.Winner = null;
 
-            await ApplyDeathsAsync(eventEntity.DeadIds);
             await _db.SaveChangesAsync();
 
             return ServiceResult<EventDto>.Ok(ADto(eventEntity));
@@ -154,75 +153,63 @@ namespace ProyectoGalactico.Services
 
         private async Task<string?> ValidateAsync(EventCreateDto dto, Event? current)
         {
-            if (string.IsNullOrWhiteSpace(dto.Name)) return "El nombre es obligatorio.";
-            if (string.IsNullOrWhiteSpace(dto.Location)) return "La ubicación es obligatoria.";
-            if (string.IsNullOrWhiteSpace(dto.Description)) return "La descripción es obligatoria.";
-            if (string.IsNullOrWhiteSpace(dto.AutorizationCode) || dto.AutorizationCode.Length < 8)
+            if (string.IsNullOrWhiteSpace(dto.Name))
+                return "El nombre es obligatorio.";
+
+            if (string.IsNullOrWhiteSpace(dto.Location))
+                return "La ubicación es obligatoria.";
+
+            if (string.IsNullOrWhiteSpace(dto.Description))
+                return "La descripción es obligatoria.";
+
+            if (string.IsNullOrWhiteSpace(dto.AutorizationCode) ||
+                dto.AutorizationCode.Length < 8)
                 return "El código de autorización debe tener al menos 8 caracteres.";
 
             var participants = dto.ParticipantsIds ?? new List<int>();
-            var dead = dto.DeadIds ?? new List<int>();
 
-            if (participants.Count == 0) return "El evento necesita al menos un participante.";
-            if (participants.Distinct().Count() != participants.Count) return "Hay participantes repetidos.";
-            if (dead.Distinct().Count() != dead.Count) return "Hay muertes repetidas.";
+            if (participants.Count == 0)
+                return "El evento necesita al menos un participante.";
 
+            if (participants.Distinct().Count() != participants.Count)
+                return "Hay participantes repetidos.";
+
+            // Verificar que todos los participantes existan
             var characterIds = await _db.Characters.AsNoTracking()
-                .Where(c => participants.Contains(c.Id) || dead.Contains(c.Id))
-                .Select(c => c.Id).ToListAsync();
-
-            foreach (var characterId in participants)
-                if (!characterIds.Contains(characterId))
-                    return $"No existe el personaje {characterId}.";
-
-            if (dead.Any(id => !participants.Contains(id)))
-                return "Los personajes que mueren deben estar entre los participantes.";
-
-            int? currentId = current?.Id;
-            var otherEvents = await _db.Events.AsNoTracking()
-                .Where(e => currentId == null || e.Id != currentId.Value)
+                .Where(c => participants.Contains(c.Id))
+                .Select(c => c.Id)
                 .ToListAsync();
 
-            if (current is not null)
+            foreach (var characterId in participants)
             {
-                foreach (var id in current.DeadIds)
-                    if (!dead.Contains(id))
-                        return $"No se puede quitar la muerte registrada de {await NameOfAsync(id)}.";
+                if (!characterIds.Contains(characterId))
+                    return $"No existe el personaje {characterId}.";
             }
 
-            foreach (var id in dead)
-            {
-                var previousDeath = otherEvents.FirstOrDefault(e => e.DeadIds.Contains(id));
-                if (previousDeath is not null)
-                    return $"{await NameOfAsync(id)} ya murió en '{previousDeath.Name}'.";
-            }
+            // Obtener eventos anteriores, excluyendo el evento actual si se está editando
+            int? currentId = current?.Id;
 
+            var previousEvents = await _db.Events.AsNoTracking()
+                .Where(e => (currentId == null || e.Id != currentId.Value)
+                            && e.Year <= dto.Year)
+                .OrderBy(e => e.Year)
+                .ToListAsync();
+
+            // Comprobar que ningún participante haya muerto anteriormente
             foreach (var id in participants)
             {
-                var deathEvent = otherEvents.FirstOrDefault(e => e.DeadIds.Contains(id));
-                if (deathEvent is not null && dto.Year > deathEvent.Year)
-                    return $"{await NameOfAsync(id)} murió en '{deathEvent.Name}' ({YearConverter.Format(deathEvent.Year)}) y no puede participar en un evento posterior.";
-            }
+                var deathEvent = previousEvents
+                    .FirstOrDefault(e => e.DeadIds.Contains(id));
 
-            foreach (var id in dead)
-            {
-                var laterEvent = otherEvents.FirstOrDefault(e =>
-                    e.Year > dto.Year && e.ParticipantsIds.Contains(id));
-                if (laterEvent is not null)
-                    return $"{await NameOfAsync(id)} participa en '{laterEvent.Name}', que es posterior a esta muerte.";
+                if (deathEvent is not null)
+                {
+                    return $"{await NameOfAsync(id)} murió en '{deathEvent.Name}' " +
+                           $"({YearConverter.Format(deathEvent.Year)}) " +
+                           "y no puede participar en este evento.";
+                }
             }
 
             return null;
-        }
-
-        private async Task ApplyDeathsAsync(IEnumerable<int> deadIds)
-        {
-            var ids = deadIds.Distinct().ToList();
-            if (ids.Count == 0) return;
-
-            var characters = await _db.Characters.Where(c => ids.Contains(c.Id)).ToListAsync();
-            foreach (var character in characters)
-                character.CharacterState = CharacterState.Dead;
         }
 
         private async Task<string> NameOfAsync(int id)

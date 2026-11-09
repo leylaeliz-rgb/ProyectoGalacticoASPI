@@ -10,6 +10,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<CardCharacter> CardsCharacter => Set<CardCharacter>();
     public DbSet<Character> Characters => Set<Character>();
     public DbSet<Event> Events => Set<Event>();
+    public DbSet<BattleRecord> BattleRecords => Set<BattleRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -61,6 +62,38 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                     value => JsonSerializer.Serialize(value, (JsonSerializerOptions?)null),
                     value => JsonSerializer.Deserialize<List<int>>(value, (JsonSerializerOptions?)null) ?? new List<int>())
                 .Metadata.SetValueComparer(listComparer);
+        });
+
+        modelBuilder.Entity<BattleRecord>(entity =>
+        {
+            entity.HasKey(b => b.Id);
+
+            // Guardar el resultado como texto
+            entity.Property(b => b.Outcome)
+                .HasConversion<string>()
+                .HasMaxLength(20)
+                .IsRequired();
+
+            // Relación con Event
+            entity.HasOne(b => b.Event)
+                .WithMany()
+                .HasForeignKey(b => b.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relación con Character
+            entity.HasOne(b => b.Character)
+                .WithMany()
+                .HasForeignKey(b => b.CharacterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relación con CardCharacter
+            entity.HasOne(b => b.Card)
+                .WithMany()
+                .HasForeignKey(b => b.CardId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(b => b.EventId);
+            entity.HasIndex(b => b.CharacterId);
         });
     }
 }
