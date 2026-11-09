@@ -104,7 +104,7 @@ public class CharacterService(AppDbContext db) : ICharacterService
         Id = character.Id,
         Name = character.Name,
         Species = character.Species,
-        Faction = character.Faction ?? Faction.Neutral,
+        Faction = character.Faction,
         CharacterState = character.CharacterState,
         IsActive = character.IsActive,
         SensoryForce = character.SensoryForce,

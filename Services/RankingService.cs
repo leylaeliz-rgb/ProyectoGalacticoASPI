@@ -21,7 +21,7 @@ public class RankingService(AppDbContext db)
         if (!string.IsNullOrWhiteSpace(faction))
         {
             if (!Enum.TryParse<Faction>(faction, true, out var value) || !Enum.IsDefined(value))
-                return ServiceResult<List<RankingItem>>.Invalid("Facción no válida. Usa Rebelde, Imperio o Neutral.");
+                return ServiceResult<List<RankingItem>>.Invalid("Facción no válida. Usa Autobot, Decepticon o Neutral.");
             parsedFaction = value;
         }
 
@@ -45,7 +45,7 @@ public class RankingService(AppDbContext db)
             .OrderByDescending(x => x.Score)
             .ThenBy(x => x.Character.Id)
             .Select((x, index) => new RankingItem(index + 1, x.Character.Id, x.Character.Name,
-                (x.Character.Faction ?? Faction.Neutral).ToString(), x.Card.Id,
+                (x.Character.Faction).ToString(), x.Card.Id,
                 x.Card.DangerousLevel, PowerCalculator.Bonus(x.Character), x.Score))
             .ToList();
 
