@@ -97,11 +97,14 @@ namespace ProyectoGalactico.Services
             if (verification == PasswordVerificationResult.Failed)
                 return ServiceResult<EventDto>.Forbidden("El código de autorización es incorrecto.");
 
+            if (!string.IsNullOrEmpty(eventEntity.Winner))
+            {
+                return ServiceResult<EventDto>.Invalid(
+                    "No se puede modificar un evento que ya fue simulado.");
+            }
+
             var error = await ValidateAsync(dto, eventEntity);
             if (error is not null) return ServiceResult<EventDto>.Invalid(error);
-
-            var sameParticipants = eventEntity.ParticipantsIds.Order()
-                .SequenceEqual(dto.ParticipantsIds.Distinct().Order());
 
             eventEntity.Name = dto.Name.Trim();
             eventEntity.Year = dto.Year;
@@ -109,8 +112,6 @@ namespace ProyectoGalactico.Services
             eventEntity.Description = dto.Description.Trim();
             eventEntity.ParticipantsIds = dto.ParticipantsIds.Distinct().ToList();
             eventEntity.HashAutorizationCode = _hasher.HashPassword(eventEntity, dto.AutorizationCode);
-
-            if (!sameParticipants) eventEntity.Winner = null;
 
             await _db.SaveChangesAsync();
 
@@ -132,6 +133,7 @@ namespace ProyectoGalactico.Services
             foreach (var character in participants)
             {
                 var card = character.Cards
+                    .Where(c => c.IsAvailable)
                     .OrderByDescending(c => c.DangerousLevel)
                     .ThenBy(c => c.Id)
                     .FirstOrDefault();

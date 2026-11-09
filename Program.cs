@@ -45,10 +45,4 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
-
-app.MapGet("/health/db", async (AppDbContext db) =>
-    await db.Database.CanConnectAsync()
-        ? Results.Ok(new { status = "ok", database = "connected" })
-        : Results.Problem("No fue posible conectar con la base de datos."));
-
 app.Run();
