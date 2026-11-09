@@ -1,24 +1,15 @@
-﻿namespace ProyectoGalactico.Common
+﻿using ProyectoGalactico.Enums;
+
+namespace ProyectoGalactico.Common;
+
+public static class GameCodes
 {
-    public static class GameCodes
+    public static bool TryParseFaction(string? value, out Faction faction)
     {
-        public static char? ParseFaction(string? text) => text?.Trim().ToLowerInvariant() switch
-        {
-            "rebelde" or "r" => 'R',
-            "imperio" or "i" => 'I',
-            "neutral" or "n" => 'N',
-            _ => null
-        };
-        public static string FactionName(char c) => c switch
-        {
-            'R' => "Rebelde",
-            'I' => "Imperio",
-            'N' => "Neutral",
-            _ => "Desconocida"
-        };
+        if (Enum.TryParse(value, true, out faction) && Enum.IsDefined(faction))
+            return true;
 
-        public static bool IsValidFaction(char c) => c is 'R' or 'I' or 'N';
-        public static bool IsValidState(char c) => c is 'V' or 'M' or 'D'; //vivo, muerto, desconocido
-
+        faction = default;
+        return false;
     }
 }
