@@ -9,7 +9,7 @@ namespace ProyectoGalactico.Controllers;
 [ApiController]
 [Route("cartas")]
 [Tags("Cartas")]
-public class CardsController(CardService service) : ControllerBase
+public class CardsController(ICardService service) : ControllerBase
 {
     [HttpGet]
     [ApiExplorerSettings(GroupName = "v1")]

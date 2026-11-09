@@ -68,15 +68,20 @@ namespace ProyectoGalactico.OpenApi
                     var type = context.JsonTypeInfo.Type;
 
                     if (type == typeof(CharacterCreateDto))
-                        schema.Example = new JsonObject
+                        schema.Examples = new List < JsonNode>
+                        {
+                        new JsonObject 
                         {
                             ["name"] = "Bumblebee",
                             ["species"] = "Cybertroniano",
                             ["faction"] = "Autobot",
                             ["sensoryForce"] = false
+                            }
                         };
                     else if (type == typeof(CardCharacterCreateDto))
-                        schema.Example = new JsonObject
+                        schema.Examples = new List<JsonNode>
+                        {
+                        new JsonObject
                         {
                             ["characterId"] = 3,
                             ["power"] = "Liderazgo",
@@ -84,9 +89,12 @@ namespace ProyectoGalactico.OpenApi
                             ["weapon"] = "Blaster",
                             ["dangerousLevel"] = 6,
                             ["pictureUrl"] = "https://i.pinimg.com/736x/01/63/78/01637820c08fda36de1cb929ebf4da5b.jpg"
+                        }
                         };
                     else if (type == typeof(EventCreateDto))
-                        schema.Example = new JsonObject
+                        schema.Examples = new List<JsonNode>
+                        {
+                        new JsonObject
                         {
                             ["autorization code"] = "ContraseñaSegura123",
                             ["name"] = "Resurgimiento de un nuevo Prime",
@@ -95,6 +103,7 @@ namespace ProyectoGalactico.OpenApi
                             ["description"] = "Los mineros, los cybertronianos buscan un futuro mejor, un fututo más justo.",
                             ["participantIds"] = new JsonArray(1, 2, 3, 4),
                             ["deadIds"] = new JsonArray()
+                        }
                         };
 
                     return Task.CompletedTask;
