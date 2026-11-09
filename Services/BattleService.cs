@@ -4,6 +4,7 @@ using ProyectoGalactico.Common;
 using ProyectoGalactico.Data;
 using ProyectoGalactico.Dtos.Responses;
 using ProyectoGalactico.Enums;
+using ProyectoGalactico.Models;
 
 namespace ProyectoGalactico.Services;
 
@@ -46,7 +47,8 @@ public class BattleService(AppDbContext db, IEncryptionService encryption)
         var consequences = new List<BattleConsequence>();
 
         // 1. Comprobar estados y determinar reapariciones.
-        var appearedCharacters = new List<(Models.Character Character, bool Reappeared)>();
+        var appearedCharacters = new List<(Character Character, bool Reappeared)>();
+        var selectedCards = new Dictionary<int, CardCharacter>();
 
         foreach (var character in characters)
         {
@@ -98,6 +100,7 @@ public class BattleService(AppDbContext db, IEncryptionService encryption)
                 missingCards.Add(character.Name);
                 continue;
             }
+            selectedCards[character.Id] = card;
 
             var fighter = new FighterScore(
                 character.Id,
@@ -171,13 +174,7 @@ public class BattleService(AppDbContext db, IEncryptionService encryption)
         // 6. Resolver consecuencias de los participantes que aparecieron.
         foreach (var (character, reappeared) in appearedCharacters)
         {
-            var card = character.Cards.First(c =>
-                c.CharacterId == character.Id &&
-                c.IsAvailable &&
-                appearedCharacters.Any(p => p.Character.Id == character.Id) &&
-                (autobots.Any(f => f.CardId == c.Id) ||
-                 decepticons.Any(f => f.CardId == c.Id) ||
-                 neutrals.Any(f => f.CardId == c.Id)));
+            var card = selectedCards[character.Id];
 
             var outcome = BattleOutcome.Unharmed;
             int? roll = null;
