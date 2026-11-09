@@ -19,4 +19,7 @@ public class CardCharacterCreateDto
     [Required(ErrorMessage = "La URL de la imagen es obligatoria.")]
     [StringLength(500)]
     public string PictureUrl { get; set; } = string.Empty;
+
+    [Range(1, 100, ErrorMessage = "El ratio de supervivencia tiene que ser entre 1 a 100")]
+    public int SurvivalRatio { get; set; }          // 1 a 100
 }
