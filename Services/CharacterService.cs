@@ -116,7 +116,9 @@ public class CharacterService(AppDbContext db) : ICharacterService
             SpecialHability = c.SpecialHability,
             Weapon = c.Weapon,
             DangerousLevel = c.DangerousLevel,
-            PictureUrl = c.PictureUrl
+            PictureUrl = c.PictureUrl,
+            SurvivalRatio = c.SurvivalRatio,
+            IsAvailable = c.IsAvailable
         }).ToList()
     };
 }

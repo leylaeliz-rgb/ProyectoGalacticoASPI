@@ -24,6 +24,7 @@ public static class ServiceResultExtensions
             ResultStatus.Ok => controller.Ok(result.Value),
             ResultStatus.NotFound => controller.NotFound(new ErrorResponse(result.Error!)),
             ResultStatus.Conflict => controller.Conflict(new ErrorResponse(result.Error!)),
+            ResultStatus.Forbidden => controller.StatusCode(StatusCodes.Status403Forbidden, new ErrorResponse(result.Error!)),
 
             _ => controller.BadRequest(new ErrorResponse(result.Error!))
         };
