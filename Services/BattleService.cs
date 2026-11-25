@@ -8,7 +8,7 @@ using ProyectoGalactico.Models;
 
 namespace ProyectoGalactico.Services;
 
-public class BattleService(AppDbContext db, IEncryptionService encryption) : IBattleService
+public class BattleService(AppDbContext db, IEncryptionService encryption, ILogger<BattleService> logger) : IBattleService
 {
     private const double SupportRate = 0.5;
     private const double MinFactor = 0.9;
@@ -17,6 +17,7 @@ public class BattleService(AppDbContext db, IEncryptionService encryption) : IBa
 
     private readonly AppDbContext _db = db;
     private readonly IEncryptionService _encryption = encryption;
+    private readonly ILogger<BattleService> _logger = logger;
 
     public async Task<ServiceResult<BattleResult>> SimulateAsync(int eventId, int? seed)
     {
@@ -28,8 +29,11 @@ public class BattleService(AppDbContext db, IEncryptionService encryption) : IBa
                 $"No existe el evento {eventId}.");
 
         if (!string.IsNullOrWhiteSpace(eventEntity.Winner))
+        {
+            _logger.LogWarning("Se intentó simular el evento {EventId}, que ya fue simulado", eventId);
             return ServiceResult<BattleResult>.Invalid(
                 "Este evento ya fue simulado.");
+        }
 
         var characters = await _db.Characters
             .Include(c => c.Cards)
@@ -38,6 +42,9 @@ public class BattleService(AppDbContext db, IEncryptionService encryption) : IBa
             .ToListAsync();
 
         var usedSeed = seed ?? Random.Shared.Next();
+        _logger.LogInformation(
+            "Simulación del evento {EventId} iniciada con {ParticipantCount} participantes (seed {Seed})",
+            eventId, characters.Count, usedSeed);
         var random = new Random(usedSeed);
 
         var autobots = new List<FighterScore>();
@@ -270,9 +277,12 @@ public class BattleService(AppDbContext db, IEncryptionService encryption) : IBa
             usedSeed,
             consequences);
 
+        // El ganador no se registra: en la BDD se guarda cifrado.
+        _logger.LogInformation(
+            "Evento {EventId} simulado: {DeadCount} muertes registradas (seed {Seed})",
+            eventEntity.Id, consequences.Count(c => c.Outcome == BattleOutcome.Died), usedSeed);
+
         return ServiceResult<BattleResult>.Ok(result);
-
-
     }
 
     public async Task<ServiceResult<List<BattleHistoryItem>>> GetHistoryAsync(

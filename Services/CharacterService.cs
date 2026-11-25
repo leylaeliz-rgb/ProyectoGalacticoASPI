@@ -7,9 +7,10 @@ using ProyectoGalactico.Models;
 
 namespace ProyectoGalactico.Services;
 
-public class CharacterService(AppDbContext db) : ICharacterService
+public class CharacterService(AppDbContext db, ILogger<CharacterService> logger) : ICharacterService
 {
     private readonly AppDbContext _db = db;
+    private readonly ILogger<CharacterService> _logger = logger;
 
     public async Task<ServiceResult<List<CharacterDto>>> GetAllAsync(string? faction, bool? sensoryForce)
     {
@@ -59,6 +60,7 @@ public class CharacterService(AppDbContext db) : ICharacterService
 
         _db.Characters.Add(character);
         await _db.SaveChangesAsync();
+        _logger.LogInformation("Personaje {CharacterId} creado", character.Id);
         return ServiceResult<CharacterDto>.Ok(ToDto(character));
     }
 
@@ -80,6 +82,7 @@ public class CharacterService(AppDbContext db) : ICharacterService
         character.SensoryForce = dto.SensoryForce;
 
         await _db.SaveChangesAsync();
+        _logger.LogInformation("Personaje {CharacterId} modificado", id);
         return ServiceResult<CharacterDto>.Ok(ToDto(character));
     }
 
@@ -92,10 +95,14 @@ public class CharacterService(AppDbContext db) : ICharacterService
         var appearsInEvent = (await _db.Events.AsNoTracking().ToListAsync())
             .Any(e => e.ParticipantsIds.Contains(id));
         if (appearsInEvent)
+        {
+            _logger.LogWarning("Eliminación rechazada del personaje {CharacterId}: participa en eventos", id);
             return ServiceResult<bool>.Conflict("No se puede eliminar: el personaje participa en eventos.");
+        }
 
         _db.Characters.Remove(character);
         await _db.SaveChangesAsync();
+        _logger.LogInformation("Personaje {CharacterId} eliminado", id);
         return ServiceResult<bool>.Ok(true);
     }
 

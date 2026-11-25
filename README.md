@@ -42,6 +42,7 @@ Si faltan paquetes:
 ```
 dotnet add package Pomelo.EntityFrameworkCore.MySql --version 9.0.0
 dotnet add package Microsoft.EntityFrameworkCore.Design --version 9.0.0
+dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer --version 10.0.0
 dotnet build
 ```
 

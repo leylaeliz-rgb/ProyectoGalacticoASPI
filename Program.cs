@@ -1,12 +1,17 @@
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using ProyectoGalactico.Auth;
 using ProyectoGalactico.Data;
+using ProyectoGalactico.Logging;
 using ProyectoGalactico.Models;
 using ProyectoGalactico.OpenApi;
 using ProyectoGalactico.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.AddGalacticLogging();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Falta la cadena de conexión ConnectionStrings:DefaultConnection.");
@@ -25,7 +30,6 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.Converters.Add(
             new JsonStringEnumConverter(allowIntegerValues: false)));
 
-builder.Services.AddAuthorization();
 builder.Services.AddGalacticOpenApi();
 
 builder.Services.AddScoped<ICharacterService, CharacterService>();
@@ -36,15 +40,49 @@ builder.Services.AddScoped<RankingService>();
 builder.Services.AddScoped<IEncryptionService, EncryptionService>();
 builder.Services.AddScoped<IPasswordHasher<Event>, PasswordHasher<Event>>();
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+    {
+        var client = context.Connection.RemoteIpAddress?.ToString() ?? "desconocido";
+
+        return RateLimitPartition.GetFixedWindowLimiter(client, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 60,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        });
+    });
+
+    options.AddPolicy(AuthSetup.RateLimitPolicy, context =>
+    {
+        var client = context.Connection.RemoteIpAddress?.ToString() ?? "desconocido";
+
+        return RateLimitPartition.GetFixedWindowLimiter(client, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 5,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        });
+    });
+});
+
+builder.Services.AddEventAuthorization(builder.Configuration);
+builder.Services.AddGalacticErrorHandling();
 
 var app = builder.Build();
+
+app.UseGalacticLogging();
 
 if (app.Environment.IsDevelopment())
     app.UseGalacticSwagger();
 
 app.UseHttpsRedirection();
+app.UseRateLimiter();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-

@@ -14,12 +14,14 @@ namespace ProyectoGalactico.Services
         private readonly AppDbContext _db;
         private readonly IPasswordHasher<Event> _hasher;
         private readonly IEncryptionService _encryption;
+        private readonly ILogger<EventService> _logger;
 
-        public EventService (AppDbContext db, IPasswordHasher<Event> hasher, IEncryptionService encryption)
+        public EventService(AppDbContext db, IPasswordHasher<Event> hasher, IEncryptionService encryption, ILogger<EventService> logger)
         {
             _db = db;
             _hasher = hasher;
             _encryption = encryption;
+            _logger = logger;
         }
 
         public async Task<ServiceResult<List<EventDto>>> GetAllAsync(int? characterId, string? from, string? to)
@@ -38,7 +40,7 @@ namespace ProyectoGalactico.Services
                 (from is null || e.Year >= fromYear) &&
                 (to is null || e.Year <= toYear));
 
-            return ServiceResult<List<EventDto>>.Ok(filtered.Select(ADto).ToList());
+            return ServiceResult<List<EventDto>>.Ok(filtered.Select(ToDto).ToList());
         }
 
         public async Task<ServiceResult<EventDto>> GetByIdAsync(int id)
@@ -46,7 +48,7 @@ namespace ProyectoGalactico.Services
             var eventEntity = await _db.Events.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
             return eventEntity is null
                 ? ServiceResult<EventDto>.NotFound($"No existe el evento {id}.")
-                : ServiceResult<EventDto>.Ok(ADto(eventEntity));
+                : ServiceResult<EventDto>.Ok(ToDto(eventEntity));
         }
 
         public async Task<ServiceResult<List<EventDto>>> GetByCharacterAsync(int characterId)
@@ -56,7 +58,7 @@ namespace ProyectoGalactico.Services
 
             var events = await _db.Events.AsNoTracking().OrderBy(e => e.Year).ThenBy(e => e.Id).ToListAsync();
             return ServiceResult<List<EventDto>>.Ok(
-                events.Where(e => e.ParticipantsIds.Contains(characterId)).Select(ADto).ToList());
+                events.Where(e => e.ParticipantsIds.Contains(characterId)).Select(ToDto).ToList());
         }
 
         public async Task<ServiceResult<EventDto>> CreateAsync(EventCreateDto dto)
@@ -79,8 +81,10 @@ namespace ProyectoGalactico.Services
 
             _db.Events.Add(eventEntity);
             await _db.SaveChangesAsync();
+            _logger.LogInformation("Evento {EventId} creado con {ParticipantCount} participantes",
+                eventEntity.Id, eventEntity.ParticipantsIds.Count);
 
-            return ServiceResult<EventDto>.Ok(ADto(eventEntity));
+            return ServiceResult<EventDto>.Ok(ToDto(eventEntity));
         }
 
         public async Task<ServiceResult<EventDto>> UpdateAsync(int id, EventCreateDto dto)
@@ -95,10 +99,14 @@ namespace ProyectoGalactico.Services
             var verification = _hasher.VerifyHashedPassword(
                 eventEntity, eventEntity.HashAutorizationCode, dto.AutorizationCode);
             if (verification == PasswordVerificationResult.Failed)
+            {
+                _logger.LogWarning("Modificación rechazada del evento {EventId}: código de autorización incorrecto", id);
                 return ServiceResult<EventDto>.Forbidden("El código de autorización es incorrecto.");
+            }
 
             if (!string.IsNullOrEmpty(eventEntity.Winner))
             {
+                _logger.LogWarning("Modificación rechazada del evento {EventId}: ya fue simulado", id);
                 return ServiceResult<EventDto>.Invalid(
                     "No se puede modificar un evento que ya fue simulado.");
             }
@@ -114,8 +122,9 @@ namespace ProyectoGalactico.Services
             eventEntity.HashAutorizationCode = _hasher.HashPassword(eventEntity, dto.AutorizationCode);
 
             await _db.SaveChangesAsync();
+            _logger.LogInformation("Evento {EventId} modificado", id);
 
-            return ServiceResult<EventDto>.Ok(ADto(eventEntity));
+            return ServiceResult<EventDto>.Ok(ToDto(eventEntity));
         }
 
         public async Task<ServiceResult<MvpResponse>> GetMvpAsync(int eventId)
@@ -221,7 +230,7 @@ namespace ProyectoGalactico.Services
                 ?? $"Personaje {id}";
         }
 
-        private EventDto ADto (Event e)
+        private EventDto ToDto(Event e)
         {
             return new EventDto
             {

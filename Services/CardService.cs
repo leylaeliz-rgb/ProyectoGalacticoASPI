@@ -7,9 +7,10 @@ using ProyectoGalactico.Models;
 
 namespace ProyectoGalactico.Services;
 
-public class CardService(AppDbContext db) : ICardService
+public class CardService(AppDbContext db, ILogger<CardService> logger) : ICardService
 {
     private readonly AppDbContext _db = db;
+    private readonly ILogger<CardService> _logger = logger;
 
     public async Task<List<CardCharacterDto>> GetAllAsync(int? characterId, int? minDangerousLevel)
     {
@@ -64,6 +65,7 @@ public class CardService(AppDbContext db) : ICardService
 
         _db.CardsCharacter.Add(card);
         await _db.SaveChangesAsync();
+        _logger.LogInformation("Carta {CardId} creada para el personaje {CharacterId}", card.Id, card.CharacterId);
 
         return ServiceResult<CardCharacterDto>.Ok(ToDto(card));
     }
@@ -88,6 +90,7 @@ public class CardService(AppDbContext db) : ICardService
         card.SurvivalRatio = dto.SurvivalRatio;
 
         await _db.SaveChangesAsync();
+        _logger.LogInformation("Carta {CardId} modificada", id);
 
         return ServiceResult<CardCharacterDto>.Ok(ToDto(card));
     }
@@ -101,6 +104,7 @@ public class CardService(AppDbContext db) : ICardService
 
         _db.CardsCharacter.Remove(card);
         await _db.SaveChangesAsync();
+        _logger.LogInformation("Carta {CardId} eliminada", id);
 
         return ServiceResult<bool>.Ok(true);
     }

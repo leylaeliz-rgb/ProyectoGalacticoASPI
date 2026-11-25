@@ -5,17 +5,18 @@ namespace ProyectoGalactico.Services
 {
     public class EncryptionService : IEncryptionService
     {
-        private const int TamanoNonce = 12;
-        private const int TamanoTag = 16;
-        private readonly byte[] _clave;
+        private const int NonceSize = 12;
+        private const int TagSize = 16;
+        private readonly byte[] _key;
 
         public EncryptionService(IConfiguration configuration)
         {
-            var claveBase64 = configuration["Cifrado:Clave"] // hay que settear en el secret manager uououououououououououououououou, DEBE VERSE CIFRADO EN LA BDD
+            // Clave AES-256 en Base64, guardada en user-secrets. Con ella se cifra el ganador del evento en la BDD.
+            var base64Key = configuration["Cifrado:Clave"]
                 ?? throw new InvalidOperationException("Falta el secreto Cifrado:Clave");
 
-            _clave = Convert.FromBase64String(claveBase64);
-            if (_clave.Length != 32)
+            _key = Convert.FromBase64String(base64Key);
+            if (_key.Length != 32)
             {
                 throw new InvalidOperationException("La clave debe tener 32 bytes (256 bits) en Base64");
             }
@@ -23,34 +24,34 @@ namespace ProyectoGalactico.Services
 
         public string Encrypt(string plainText)
         {
-            var datos = Encoding.UTF8.GetBytes(plainText);
-            var nonce = RandomNumberGenerator.GetBytes(TamanoNonce);
-            var cifrado = new byte[datos.Length];
-            var tag = new byte[TamanoTag];
+            var data = Encoding.UTF8.GetBytes(plainText);
+            var nonce = RandomNumberGenerator.GetBytes(NonceSize);
+            var cipherText = new byte[data.Length];
+            var tag = new byte[TagSize];
 
-            using var aes = new AesGcm(_clave, TamanoTag);
-            aes.Encrypt(nonce, datos, cifrado, tag);
+            using var aes = new AesGcm(_key, TagSize);
+            aes.Encrypt(nonce, data, cipherText, tag);
 
-            var resultado = new byte[TamanoNonce + TamanoTag + cifrado.Length];
-            Buffer.BlockCopy(nonce, 0, resultado, 0, TamanoNonce);
-            Buffer.BlockCopy(tag, 0, resultado, TamanoNonce, TamanoTag);
-            Buffer.BlockCopy(cifrado, 0, resultado, TamanoNonce + TamanoTag, cifrado.Length);
+            var result = new byte[NonceSize + TagSize + cipherText.Length];
+            Buffer.BlockCopy(nonce, 0, result, 0, NonceSize);
+            Buffer.BlockCopy(tag, 0, result, NonceSize, TagSize);
+            Buffer.BlockCopy(cipherText, 0, result, NonceSize + TagSize, cipherText.Length);
 
-            return Convert.ToBase64String(resultado);
+            return Convert.ToBase64String(result);
         }
 
         public string Decrypt(string encryptedText)
         {
-            var datos = Convert.FromBase64String(encryptedText);
-            var nonce = datos[..TamanoNonce];
-            var tag = datos[TamanoNonce..(TamanoNonce + TamanoTag)];
-            var cifrado = datos[(TamanoNonce + TamanoTag)..];
-            var plano = new byte[cifrado.Length];
+            var data = Convert.FromBase64String(encryptedText);
+            var nonce = data[..NonceSize];
+            var tag = data[NonceSize..(NonceSize + TagSize)];
+            var cipherText = data[(NonceSize + TagSize)..];
+            var plain = new byte[cipherText.Length];
 
-            using var aes = new AesGcm(_clave, TamanoTag);
-            aes.Decrypt(nonce, cifrado, tag, plano);
+            using var aes = new AesGcm(_key, TagSize);
+            aes.Decrypt(nonce, cipherText, tag, plain);
 
-            return Encoding.UTF8.GetString(plano);
+            return Encoding.UTF8.GetString(plain);
         }
     }
 }

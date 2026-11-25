@@ -1,4 +1,7 @@
-﻿using ProyectoGalactico.Dtos;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.OpenApi;
+using Microsoft.OpenApi;
+using ProyectoGalactico.Dtos;
 using ProyectoGalactico.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Nodes;
@@ -11,6 +14,8 @@ namespace ProyectoGalactico.OpenApi
         {
             services.AddOpenApi("v1", options =>
             {
+                AddBearerSecurity(options);
+
                 options.AddDocumentTransformer((document, context, ct) =>
                 {
                     document.Info = new()
@@ -24,14 +29,15 @@ namespace ProyectoGalactico.OpenApi
                             1. `GET /personajes` para ver quién existe (filtra con `faction` y `sensoryForce`).
                             2. `GET /eventos` para ver los eventos en orden cronológico (filtra con `characterId`, `desde` y `hasta`).
                             3. `GET /eventos/{id}/mvp` para ver qué participante tiene más poder en un evento.
-                            4. `POST /eventos/{id}/simular` para simular la batalla: Autobots contra Decepticons, y los neutrales apoyan al bando más débil.
-                            5. `GET /personajes/{id}/historial` para ver qué le pasó a un personaje en cada batalla.
-                            6. `GET /personajes/ranking?por=poder` para ver quién es el más poderoso.
+                            4. `POST /autorizacion/evento` con el nombre y el `autorizationCode` del evento para obtener un token. Pulsa **Authorize** y pégalo.
+                            5. `POST /eventos/{id}/simular` para simular la batalla (solo con el token de ese mismo evento): Autobots contra Decepticons, y los neutrales apoyan al bando más débil.
+                            6. `GET /personajes/{id}/historial` para ver qué le pasó a un personaje en cada batalla.
+                            7. `GET /personajes/ranking?por=poder` para ver quién es el más poderoso.
 
                             **Conceptos básicos**
                             - **Personaje**: un combatiente. Puede tener varias cartas.
                             - **Carta**: la ficha de combate de un personaje (poder, habilidad especial, arma, peligrosidad y probabilidad de supervivencia). Al pelear se usa su carta disponible de mayor peligrosidad.
-                            - **Evento**: un hecho en la línea de tiempo con sus participantes. Solo se puede simular una vez.
+                            - **Evento**: un hecho en la línea de tiempo con sus participantes. Solo se puede simular una vez, y hace falta autorizarlo con su código.
 
                             **Significado de los valores**
                             - Facción (`faction`): `Autobot`, `Decepticon` o `Neutral`. Los neutrales no pelean: solo dan apoyo.
@@ -92,7 +98,7 @@ namespace ProyectoGalactico.OpenApi
                             - No se puede borrar un personaje que participa en eventos.
                             - Un personaje puede tener varias cartas: cuenta la de mayor peligrosidad disponible.
                             - Un evento necesita al menos un participante, sin repetidos y todos existentes.
-                            - `autorizationCode` (de 8 a 100 caracteres) se guarda con hash y no se devuelve. Para modificar un evento hay que enviar el mismo código; si es incorrecto responde 403.
+                            - `autorizationCode` (de 8 a 100 caracteres) se guarda con hash y no se devuelve. Para modificar un evento hay que enviar el mismo código; si es incorrecto responde 403. Ese mismo código sirve para autorizar el evento y simularlo (documento v1).
                             - Un evento ya simulado no se puede modificar.
                             - El ganador (`winner`) se guarda cifrado en la base y se muestra descifrado.
                             """
@@ -136,7 +142,7 @@ namespace ProyectoGalactico.OpenApi
                         {
                             ["autorizationCode"] = "ContraseñaSegura123",
                             ["name"] = "Resurgimiento de un nuevo Prime",
-                            ["date"] = 4,
+                            ["year"] = 4,
                             ["location"] = "Ciudad de Iacon",
                             ["description"] = "Los mineros, los cybertronianos buscan un futuro mejor, un fututo más justo.",
                             ["participantsIds"] = new JsonArray(1, 2, 3, 4),
@@ -150,6 +156,38 @@ namespace ProyectoGalactico.OpenApi
             return services;
         }
 
+        // Esquema Bearer y requisito de seguridad solo en los endpoints con [Authorize].
+        private static void AddBearerSecurity(OpenApiOptions options)
+        {
+            options.AddDocumentTransformer((document, context, ct) =>
+            {
+                document.Components ??= new OpenApiComponents();
+                document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+                document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
+                {
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    Description = "Token devuelto por POST /autorizacion/evento (sin el prefijo Bearer)."
+                };
+                return Task.CompletedTask;
+            });
+
+            options.AddOperationTransformer((operation, context, ct) =>
+            {
+                var metadata = context.Description.ActionDescriptor.EndpointMetadata;
+                if (metadata.OfType<IAuthorizeData>().Any() && !metadata.OfType<IAllowAnonymous>().Any())
+                {
+                    operation.Security ??= new List<OpenApiSecurityRequirement>();
+                    operation.Security.Add(new OpenApiSecurityRequirement
+                    {
+                        [new OpenApiSecuritySchemeReference("Bearer")] = new List<string>()
+                    });
+                }
+                return Task.CompletedTask;
+            });
+        }
+
         public static WebApplication UseGalacticSwagger(this WebApplication app)
         {
             app.MapOpenApi();
@@ -158,6 +196,7 @@ namespace ProyectoGalactico.OpenApi
                 options.SwaggerEndpoint("/openapi/v1.json", "Proyecto Galáctico: Todos contra todos - Juego");
                 options.SwaggerEndpoint("/openapi/v2.json", "Proyecto Galáctico: Zona de Administración");
                 options.DocumentTitle = "Manual de Operaciones - Proyecto Galáctico";
+                options.EnablePersistAuthorization();   // conserva el token al recargar
                 options.EnableFilter();          // barra de búsqueda de endpoints
                 options.DisplayRequestDuration();
             });
