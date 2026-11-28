@@ -3,6 +3,8 @@
 namespace ProyectoGalactico.Auth;
 
 // Claims del token: el sujeto autorizado es un evento, no un usuario.
+// define que datos lleva el token y se utiliza en game controller para comparar el
+//evento del token con el de la ruta
 public static class EventClaims
 {
     public const string EventId = "sub";

@@ -75,6 +75,8 @@ Guardarla y verificar:
 
 ```
 dotnet user-secrets set "Cifrado:Clave" "CLAVE_BASE64_DE_32_BYTES"
+dotnet user-secrets set "Jwt:Clave" "CLAVE_BASE64_DE_32_BYTES"
+dotnet user-secrets set "Admin:Codigo" "CLAVE_BASE64_DE_32_BYTES"
 dotnet user-secrets list
 ```
 

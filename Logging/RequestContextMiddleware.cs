@@ -55,3 +55,15 @@ public class RequestContextMiddleware(RequestDelegate next, ILogger<RequestConte
         return Convert.ToHexString(bytes)[..12].ToLowerInvariant();
     }
 }
+
+//RequestContextMiddleware.cs corre en cada petición:
+//Genera un id de 8 caracteres y 
+//lo pone en la cabecera X-Correlation - Id de la respuesta.
+//Toma la IP y el User-Agent(recortado a 200 caracteres) 
+//y calcula una huella SHA - 256 corta de ambos.
+//Mete todo eso en el contexto de Serilog, así cada 
+//log de esa petición lleva esos datos.
+//Mide el tiempo con un cronómetro y, en el finally, 
+//escribe una línea con método, ruta, estado, milisegundos
+//y el id de evento autorizado (o "anónimo"). Va en finally para registrar
+//la petición incluso si hubo un error, y porque ahí el token ya fue validado.

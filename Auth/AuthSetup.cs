@@ -7,7 +7,7 @@ namespace ProyectoGalactico.Auth;
 
 public static class AuthSetup
 {
-    // Política de rate limit para el endpoint de autorización de eventos.
+    // Política de rate limit para el endpoint de autorización de eventos. En program.cs se configura en 5 intentos por minutos por IP
     public const string RateLimitPolicy = "event-auth";
 
     public static IServiceCollection AddEventAuthorization(
