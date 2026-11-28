@@ -35,6 +35,11 @@ public class RequestContextMiddleware(RequestDelegate next, ILogger<RequestConte
             }
             finally
             {
+                if (context.Response.StatusCode == StatusCodes.Status403Forbidden)
+                    {
+                        logger.LogWarning("Acceso denegado (403) a {Method} {Path} (evento {AuthorizedEventId})",
+                            context.Request.Method, context.Request.Path.Value, authorizedEventId);
+                    }
                 stopwatch.Stop();
                 var authorizedEventId = context.User.GetEventId()?.ToString() ?? "anónimo";
 

@@ -10,7 +10,13 @@ using ProyectoGalactico.OpenApi;
 using ProyectoGalactico.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-
+var origenPermitido = builder.Configuration["Cors:Origen"]
+    ?? throw new InvalidOperationException("Falta la configuración Cors:Origen.");
+builder.Services.AddCors(options =>
+    options.AddDefaultPolicy(policy => policy
+        .WithOrigins(origenPermitido)
+        .AllowAnyHeader()
+        .AllowAnyMethod()));
 builder.AddGalacticLogging();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
@@ -80,6 +86,7 @@ if (app.Environment.IsDevelopment())
     app.UseGalacticSwagger();
 
 app.UseHttpsRedirection();
+app.UseCors();
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
