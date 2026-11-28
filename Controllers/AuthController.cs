@@ -5,8 +5,6 @@ using ProyectoGalactico.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.AspNetCore.Authorization;
-using ProyectoGalactico.Auth;
 
 namespace ProyectoGalactico.Controllers;
 
@@ -15,11 +13,11 @@ namespace ProyectoGalactico.Controllers;
 [ApiController]
 [Route("autorizacion")]
 [Tags("Autorización")]
-[ApiExplorerSettings(GroupName = "v1")]
 public class AuthController(IAuthService service) : ControllerBase
 {
     [HttpPost("evento")]
     [AllowAnonymous]
+    [ApiExplorerSettings(GroupName = "v1")]
     [EnableRateLimiting(AuthSetup.RateLimitPolicy)]
     [EndpointSummary("Autoriza un evento y devuelve un token")]
     [EndpointDescription("Envía el nombre del evento y su código de autorización. El token sirve para simular ese evento.")]
@@ -37,6 +35,7 @@ public class AuthController(IAuthService service) : ControllerBase
 
     [HttpPost("admin")]
     [AllowAnonymous]
+    [ApiExplorerSettings(GroupName = "v2")]
     [EnableRateLimiting(AuthSetup.RateLimitPolicy)]
     [EndpointSummary("Autoriza al administrador y devuelve un token")]
     [EndpointDescription("Envía el código de administrador. El token permite crear, modificar y eliminar personajes y cartas, y crear eventos.")]
