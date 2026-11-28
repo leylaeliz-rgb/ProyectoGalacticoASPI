@@ -3,7 +3,8 @@ using ProyectoGalactico.Common;
 using ProyectoGalactico.Dtos;
 using ProyectoGalactico.Dtos.Responses;
 using ProyectoGalactico.Services;
-
+using Microsoft.AspNetCore.Authorization;
+using ProyectoGalactico.Auth;
 namespace ProyectoGalactico.Controllers;
 
 [ApiController]
