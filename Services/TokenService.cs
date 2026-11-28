@@ -10,6 +10,7 @@ namespace ProyectoGalactico.Services
     public interface ITokenService
     {
         (string Token, DateTime ExpiresAt) Generate(Event eventEntity);
+        (string Token, DateTime ExpiresAt) GenerateAdmin();
     }
 
     public class TokenService : ITokenService
@@ -21,7 +22,22 @@ namespace ProyectoGalactico.Services
             _configuration = configuration;
         }
 
-        public (string Token, DateTime ExpiresAt) Generate(Event eventEntity)
+        public (string Token, DateTime ExpiresAt) Generate(Event eventEntity) =>
+            CreateToken(new[]
+            {
+                new Claim(EventClaims.EventId, eventEntity.Id.ToString()),
+                new Claim(EventClaims.EventName, eventEntity.Name)
+            });
+
+        public (string Token, DateTime ExpiresAt) GenerateAdmin() =>
+            CreateToken(new[]
+            {
+                new Claim(EventClaims.EventId, EventClaims.AdminSubject),
+                new Claim(EventClaims.EventName, "Administrador"),
+                new Claim(EventClaims.Role, EventClaims.AdminRole)
+            });
+
+        private (string Token, DateTime ExpiresAt) CreateToken(IEnumerable<Claim> claims)
         {
             var key = _configuration["Jwt:Clave"]
                 ?? throw new InvalidOperationException("Falta el secreto Jwt:Clave");
@@ -31,11 +47,7 @@ namespace ProyectoGalactico.Services
 
             var descriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(EventClaims.EventId, eventEntity.Id.ToString()),
-                    new Claim(EventClaims.EventName, eventEntity.Name)
-                }),
+                Subject = new ClaimsIdentity(claims),
                 Expires = expiresAt,
                 Issuer = _configuration["Jwt:Emisor"],
                 Audience = _configuration["Jwt:Audiencia"],

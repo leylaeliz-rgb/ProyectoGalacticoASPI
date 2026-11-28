@@ -16,6 +16,10 @@ public static class AuthSetup
         var jwtKey = configuration["Jwt:Clave"]
             ?? throw new InvalidOperationException("Falta el secreto Jwt:Clave");
 
+        var adminKey = configuration["Admin:Codigo"]
+        ?? throw new InvalidOperationException("Falta el secreto Admin:Codigo");
+
+
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IAuthService, AuthService>();
 
@@ -34,7 +38,8 @@ public static class AuthSetup
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero,
-                    NameClaimType = EventClaims.EventName
+                    NameClaimType = EventClaims.EventName,
+                    RoleClaimType = EventClaims.Role
                 };
             });
 

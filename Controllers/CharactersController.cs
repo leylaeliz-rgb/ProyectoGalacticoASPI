@@ -3,6 +3,8 @@ using ProyectoGalactico.Common;
 using ProyectoGalactico.Dtos;
 using ProyectoGalactico.Dtos.Responses;
 using ProyectoGalactico.Services;
+using Microsoft.AspNetCore.Authorization;
+using ProyectoGalactico.Auth;
 
 namespace ProyectoGalactico.Controllers;
 
@@ -28,10 +30,13 @@ public class CharactersController(ICharacterService service) : ControllerBase
         => (await service.GetByIdAsync(id)).ToActionResult(this);
 
     [HttpPost]
+    [Authorize(Roles = EventClaims.AdminRole)]
     [ApiExplorerSettings(GroupName = "v2")]
     [EndpointSummary("Crea un personaje")]
     [ProducesResponseType(typeof(CharacterDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Create(CharacterCreateDto dto)
     {
         var result = await service.CreateAsync(dto);
@@ -41,11 +46,14 @@ public class CharactersController(ICharacterService service) : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Roles = EventClaims.AdminRole)]
     [ApiExplorerSettings(GroupName = "v2")]
     [EndpointSummary("Modifica un personaje")]
     [ProducesResponseType(typeof(CharacterDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Update(int id, CharacterCreateDto dto)
     {
         var result = await service.UpdateAsync(id, dto);
@@ -55,11 +63,14 @@ public class CharactersController(ICharacterService service) : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = EventClaims.AdminRole)]
     [ApiExplorerSettings(GroupName = "v2")]
     [EndpointSummary("Elimina un personaje")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Delete(int id)
     {
         var result = await service.DeleteAsync(id);

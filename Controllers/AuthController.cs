@@ -5,6 +5,8 @@ using ProyectoGalactico.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Authorization;
+using ProyectoGalactico.Auth;
 
 namespace ProyectoGalactico.Controllers;
 
@@ -29,6 +31,23 @@ public class AuthController(IAuthService service) : ControllerBase
 
         if (authorization is null)
             return Unauthorized(new ErrorResponse("Nombre de evento o código de autorización incorrectos."));
+
+        return Ok(authorization);
+    }
+
+    [HttpPost("admin")]
+    [AllowAnonymous]
+    [EnableRateLimiting(AuthSetup.RateLimitPolicy)]
+    [EndpointSummary("Autoriza al administrador y devuelve un token")]
+    [EndpointDescription("Envía el código de administrador. El token permite crear, modificar y eliminar personajes y cartas, y crear eventos.")]
+    [ProducesResponseType(typeof(EventAuthResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    public ActionResult<EventAuthResponseDto> AuthorizeAdmin(AdminAuthRequestDto request)
+    {
+        var authorization = service.AuthorizeAdmin(request);
+
+        if (authorization is null)
+            return Unauthorized(new ErrorResponse("Código de administrador incorrecto."));
 
         return Ok(authorization);
     }

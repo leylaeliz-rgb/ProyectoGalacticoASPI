@@ -9,6 +9,9 @@ public static class EventClaims
 {
     public const string EventId = "sub";
     public const string EventName = "name";
+    public const string Role = "role";
+    public const string AdminRole = "Administrador";
+    public const string AdminSubject = "admin";
 
     public static int? GetEventId(this ClaimsPrincipal user) =>
         int.TryParse(user.FindFirstValue(EventId), out var id) ? id : null;

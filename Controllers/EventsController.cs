@@ -46,10 +46,13 @@ public class EventsController(IEventService service) : ControllerBase
         => (await service.GetByCharacterAsync(id)).ToActionResult(this);
 
     [HttpPost]
+    [Authorize(Roles = EventClaims.AdminRole)]
     [ApiExplorerSettings(GroupName = "v2")]
     [EndpointSummary("Crea un evento")]
     [ProducesResponseType(typeof(EventDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Create(EventCreateDto dto)
     {
         var result = await service.CreateAsync(dto);
