@@ -35,11 +35,7 @@ public class RequestContextMiddleware(RequestDelegate next, ILogger<RequestConte
             }
             finally
             {
-                if (context.Response.StatusCode == StatusCodes.Status403Forbidden)
-                    {
-                        logger.LogWarning("Acceso denegado (403) a {Method} {Path} (evento {AuthorizedEventId})",
-                            context.Request.Method, context.Request.Path.Value, authorizedEventId);
-                    }
+
                 stopwatch.Stop();
                 var authorizedEventId = context.User.GetEventId()?.ToString() ?? "anónimo";
 
@@ -50,6 +46,12 @@ public class RequestContextMiddleware(RequestDelegate next, ILogger<RequestConte
                     context.Response.StatusCode,
                     stopwatch.ElapsedMilliseconds,
                     authorizedEventId);
+
+                if (context.Response.StatusCode == StatusCodes.Status403Forbidden)
+                    {
+                        logger.LogWarning("Acceso denegado (403) a {Method} {Path} (evento {AuthorizedEventId})",
+                            context.Request.Method, context.Request.Path.Value, authorizedEventId);
+                    }
             }
         }
     }
